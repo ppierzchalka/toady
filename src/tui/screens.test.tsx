@@ -16,7 +16,7 @@ import {
   effortOptions,
   modelOptions,
 } from './screens/agents.js';
-import { activatePersona, browserEntries, commitBrowserFile, commitRulesPath } from './screens/persona.js';
+import { activateInstructions, browserEntries, commitBrowserFile, commitRulesPath } from './screens/instructions.js';
 import { activateReview } from './screens/review.js';
 import { editText, itemRows, menuGeometry, moveFocus, windowByLines } from './components/controls.js';
 import { headerTitle, palette, FOCUS_MARKER, COMMITTED_MARKER } from './theme.js';
@@ -28,8 +28,7 @@ function stateFor(patch: Record<string, unknown> = {}): SessionState {
     harness: 'opencode',
     config: {},
     overwrite: {},
-    toadyMode: false,
-    toadyRules: '',
+        personalRules: '',
     skillConflicts: [],
     vscodeKept: true,
   });
@@ -192,11 +191,11 @@ describe('native rules browser', () => {
       // A browser error never commits: the session keeps prior rules and the
       // browser stays open for another choice.
       const browsing = stateFor({
-        toadyRules: 'Keep me.',
+        personalRules: 'Keep me.',
         rulesBrowser: { open: true, dir: root, showHidden: false, focusId: huge, scrollTop: 0, error: null },
       });
       const next = reducer(browsing, failure);
-      expect(next.toadyRules).toBe('Keep me.');
+      expect(next.personalRules).toBe('Keep me.');
       expect(next.rulesBrowser.open).toBe(true);
       expect(next.rulesBrowser.error).toContain('64 KiB');
     } finally {
@@ -213,7 +212,7 @@ describe('native rules browser', () => {
       expect(commitRulesPath(stateFor({ draft: '  ', draftFor: 'rules-path' }))).toEqual({ type: 'CLEAR_DRAFT' });
       expect(() => commitRulesPath(stateFor({ targetDir: root, draft: 'nope.md', draftFor: 'rules-path' }))).toThrow();
       const browsing = stateFor({ rulesBrowser: { open: true, dir: root, showHidden: false, focusId: '..', scrollTop: 0, error: null } });
-      expect(activatePersona(browsing, '__cancel__', [])).toEqual({ type: 'CLOSE_RULES_BROWSER' });
+      expect(activateInstructions(browsing, '__cancel__', [])).toEqual({ type: 'CLOSE_RULES_BROWSER' });
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -227,7 +226,7 @@ describe('review activation', () => {
     const adopted = activateReview(stateFor({ skillConflicts: ['wayfinder'], adoptSkills: true }), 'install');
     expect(adopted).toBe('install');
     expect(activateReview(stateFor(), 'install')).toBe('install');
-    expect(activateReview(stateFor(), 'back')).toEqual({ type: 'NAV', to: 'persona' });
+    expect(activateReview(stateFor(), 'back')).toEqual({ type: 'NAV', to: 'instructions' });
     expect(activateReview(stateFor({ skillConflicts: ['a'] }), 'adopt')).toEqual({ type: 'SET_ADOPT_SKILLS', adopt: true });
   });
 });
