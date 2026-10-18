@@ -253,8 +253,7 @@ describe('rendered evidence matrix', () => {
         await rendered.send(KEYS.enter);
         await rendered.send(KEYS.end);
         await rendered.send(KEYS.enter);
-        await rendered.send(KEYS.down);
-        await rendered.send(KEYS.enter);
+        await rendered.send(KEYS.enter); // Browse is now the first instructions row
         await rendered.send(KEYS.down);
         await rendered.send(KEYS.down);
         await rendered.send(KEYS.enter);
