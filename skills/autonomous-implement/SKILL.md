@@ -14,7 +14,7 @@ Require native multi-agent spawning and isolated candidate contexts. If unavaila
 
 ## Optional decision gates
 
-If the user opted into OpenCode Go Jev, use [Decision Gates](../decision-gates/SKILL.md) at **plan handover** and **final outcome completion**, passing accepted scope and verified evidence. The gate is advisory and never replaces native tests, Reviewer findings or user approval. When disabled, unavailable or on another harness, do not invoke Jev or any substitute provider; continue the normal workflow unchanged.
+If the user explicitly opted into Jev for this personal project, use [Decision Gates](../decision-gates/SKILL.md) at **plan handover** and **final outcome completion**, passing accepted scope and verified evidence. The gate is advisory and never replaces native tests, Reviewer findings or user approval. When disabled, unavailable or on another harness, do not invoke Jev or any substitute provider; continue the normal workflow unchanged.
 
 ## Intake and handover
 
