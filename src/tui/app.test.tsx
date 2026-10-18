@@ -207,7 +207,7 @@ describe('native installer app', () => {
     await ready();
     await rendered.send(KEYS.enter); // agents
     await rendered.send(KEYS.end); // __next__
-    await rendered.send(KEYS.enter); // persona
+    await rendered.send(KEYS.enter); // instructions
     // instructions menu: browse, path, clear, __next__(3 downs), back
     for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter); // review
@@ -270,8 +270,8 @@ describe('native installer app', () => {
     await ready();
     await rendered.send(KEYS.enter); // agents
     await rendered.send(KEYS.end);
-    await rendered.send(KEYS.enter); // persona (focus toady)
-        await rendered.send(KEYS.enter); // open browser at target
+    await rendered.send(KEYS.enter); // instructions (focus rules browser)
+    await rendered.send(KEYS.enter); // open browser at target
     let text = stripAnsi(rendered.frame());
     expect(text).toContain('rules.md');
     // entries: .. first, then dirs (empty/), then files; move to rules.md.
@@ -385,7 +385,7 @@ describe('native installer app', () => {
     await ready();
     await rendered.send(KEYS.enter);
     await rendered.send(KEYS.end);
-    await rendered.send(KEYS.enter); // persona
+    await rendered.send(KEYS.enter); // instructions
     await rendered.send(KEYS.down); // rules-path row
     await rendered.send(KEYS.enter); // open path draft
     await rendered.send('missing.md');
@@ -458,7 +458,7 @@ describe('native installer app', () => {
     await rendered.send(KEYS.esc); // clear search, back to list region
     await rendered.send(KEYS.esc); // back to role list
     await rendered.send(KEYS.end);
-    await rendered.send(KEYS.enter); // persona
+    await rendered.send(KEYS.enter); // instructions
     for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter); // review
     await rendered.send(KEYS.enter); // install
