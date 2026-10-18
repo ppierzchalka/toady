@@ -4,6 +4,8 @@ import type { BuildInfo } from './buildInfo.js';
 /** Durable console report after the terminal is restored. No keypress gates. */
 export function reportInstall(result: InstallAllResult, harness: string, build: BuildInfo): void {
   console.log(`\nInstalled ${harness} into ${result.target} [build ${build.tag}]`);
+  if (result.jev) console.log(`  Jev decision gates: ${result.jev.enabled ? 'enabled' : 'disabled'} (${result.jev.reason})`);
+  for (const path of result.jev?.paths ?? []) console.log(`  wrote  ${path}`);
   for (const path of result.instructionsPaths) console.log(`  wrote  ${path}`);
   for (const path of result.team.written) console.log(`  wrote  ${path}`);
   for (const path of result.team.preserved) console.log(`  kept   ${path} (instructions preserved)`);
