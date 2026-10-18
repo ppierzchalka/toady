@@ -2,6 +2,7 @@ export interface CliArgs {
   defaults: boolean;
   harnessName: string | undefined;
   rulesFlag: string | undefined;
+  jev: boolean | undefined;
   clearRules: boolean;
   replaceSkills: boolean;
   help: boolean;
@@ -9,7 +10,7 @@ export interface CliArgs {
 
 const KNOWN_FLAGS = new Set([
   '--defaults', '-d',
-  '--clear-additional-rules',
+  '--clear-additional-rules', '--jev', '--no-jev',
   '--replace-skills',
   '--help', '-h',
 ]);
@@ -19,7 +20,7 @@ export const USAGE = `toady — configure Toady in a single target directory
 Usage:
   toady [--harness=<name>]
         [--additional-rules=<file>|--clear-additional-rules]
-        [--replace-skills] [--defaults]
+        [--jev|--no-jev] [--replace-skills] [--defaults]
 
   install-team remains an equivalent supported alias with identical arguments.
 
@@ -32,6 +33,7 @@ Options:
   --harness=<name>        opencode | claude-code | codex | antigravity | copilot
   --additional-rules=<f>  Load user-authored personal instructions
   --clear-additional-rules Clear personal instructions
+  --jev / --no-jev      Enable/disable Jev decision gates (OpenCode Go only)
   --replace-skills        Adopt/replace unowned shipped skill folders
   --defaults, -d          Noninteractive install with default models (cwd only)
   --help, -h              Show this help
@@ -47,6 +49,7 @@ export function parseArgs(argv: string[]): CliArgs {
     defaults: false,
     harnessName: undefined,
     rulesFlag: undefined,
+    jev: undefined,
     clearRules: false,
     replaceSkills: false,
     help: false,
@@ -56,6 +59,11 @@ export function parseArgs(argv: string[]): CliArgs {
     if (arg === '--defaults' || arg === '-d') args.defaults = true;
     else if (arg === '--help' || arg === '-h') args.help = true;
     else if (arg === '--replace-skills') args.replaceSkills = true;
+    else if (arg === '--jev' || arg === '--no-jev') {
+      const enabled = arg === '--jev';
+      if (args.jev !== undefined && args.jev !== enabled) throw new Error('Choose --jev or --no-jev, not both.\\n' + USAGE);
+      args.jev = enabled;
+    }
     else if (arg.startsWith('--harness=')) {
       if (args.harnessName !== undefined) throw new Error('Choose a single --harness=<name>.\n' + USAGE);
       args.harnessName = arg.slice('--harness='.length);
