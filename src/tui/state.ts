@@ -101,6 +101,9 @@ export interface SessionState {
   cursor: number;
   editorMode: 'list' | 'custom' | 'path';
   personalRules: string;
+  jevScope: 'work' | 'personal';
+  jevProvider: 'zen' | 'typesafe' | 'openrouter' | null;
+  jevTouched: boolean;
   /** True once personal instructions are edited; used to resolve saved harness settings. */
   rulesTouched: boolean;
   rulesBrowser: RulesBrowserState;
@@ -129,6 +132,8 @@ export interface InitialOptions {
   config: TeamConfig;
   overwrite: Record<string, boolean>;
   personalRules: string;
+  jevScope?: 'work' | 'personal';
+  jevProvider?: 'zen' | 'typesafe' | 'openrouter' | null;
   skillConflicts: string[];
   vscodeKept: boolean;
 }
@@ -153,6 +158,9 @@ export function createInitialState(options: InitialOptions): SessionState {
     cursor: 0,
     editorMode: 'list',
     personalRules: options.personalRules,
+    jevScope: options.jevScope ?? 'work',
+    jevProvider: options.jevProvider ?? null,
+    jevTouched: false,
     rulesTouched: false,
     rulesBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
     targetBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
@@ -191,6 +199,8 @@ export type Action =
   | { type: 'SET_DRAFT'; for: DraftKind; value: string; cursor?: number }
   | { type: 'SET_CURSOR'; cursor: number }
   | { type: 'CLEAR_DRAFT' }
+  | { type: 'SET_JEV_SCOPE'; scope: 'work' | 'personal' }
+  | { type: 'CYCLE_JEV_PROVIDER' }
   | { type: 'SET_RULES'; rules: string }
   | { type: 'CLEAR_RULES' }
   | { type: 'OPEN_RULES_BROWSER' }
@@ -297,6 +307,9 @@ function applyTarget(
   return withDefaults({
     ...state,
     targetDir: payload.dir,
+    jevScope: 'work',
+    jevProvider: null,
+    jevTouched: false,
     config: structuredClone(payload.config),
     overwrite,
     skillConflicts: [...payload.skillConflicts],
@@ -309,7 +322,7 @@ function applyTarget(
     focusId: 'confirm',
     scrollTop: 0,
     region: 0,
-    notice: `Target ${payload.dir} — loaded its saved configuration. Personal settings are unchanged.`,
+    notice: `Target ${payload.dir} — loaded its saved configuration. Personal instructions are unchanged; Jev consent must be selected again for the new target.`,
     error: null,
   });
 }
@@ -414,6 +427,14 @@ export function reducer(state: SessionState, action: Action): SessionState {
       // Local cancel drops the draft and its draft-owned validation error;
       // unrelated errors never coexist with an active draft.
       return { ...state, draft: '', draftFor: null, cursor: 0, editorMode: 'list', error: null };
+    case 'SET_JEV_SCOPE':
+      return { ...state, jevScope: action.scope, jevProvider: action.scope === 'work' ? null : state.jevProvider, jevTouched: true };
+    case 'CYCLE_JEV_PROVIDER': {
+      if (state.jevScope !== 'personal') return state;
+      const choices = [null, 'zen', 'typesafe', 'openrouter'] as const;
+      const next = choices[(choices.indexOf(state.jevProvider) + 1) % choices.length];
+      return { ...state, jevProvider: next, jevTouched: true };
+    }
     case 'SET_RULES':
       return { ...state, personalRules: action.rules, rulesTouched: true, rulesBrowser: { ...state.rulesBrowser, open: false, error: null }, draft: '', draftFor: null, cursor: 0, error: null };
     case 'CLEAR_RULES':

@@ -32,7 +32,7 @@ function writeConfig(targetDir: string, config: TeamConfig, harness: Harness): s
   return configPath;
 }
 
-export const SHIPPED_SKILLS = ['autonomous-implement', 'wayfinder', 'slice', 'refine', 'plan', 'project-setup', 'architecture-assess', 'security-assess', 'interface-assess', 'test-design', 'implement-task', 'review-change'] as const;
+export const SHIPPED_SKILLS = ['autonomous-implement', 'wayfinder', 'slice', 'refine', 'plan', 'project-setup', 'architecture-assess', 'security-assess', 'interface-assess', 'test-design', 'implement-task', 'review-change', 'decision-gates'] as const;
 /** Current product owner marker; the prior namespace is recognized as owned for safe upgrades. */
 export const SKILL_OWNER = 'toady';
 const LEGACY_SKILL_OWNER = 'spec-driven-scrum-team';
@@ -72,7 +72,7 @@ function copySkillFiles(source: string, dest: string, root: string): void {
   }
 }
 
-/** Read-only validation of the entire team install before persona or team writes. */
+/** Read-only validation of the entire team install before personal instruction or team writes. */
 export function preflightTeam(options: InstallOptions): void {
   const harness = options.harness ?? 'opencode';
   planLegacyCleanup(options);

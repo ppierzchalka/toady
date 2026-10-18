@@ -20,6 +20,7 @@ export function scopeLines(state: SessionState): { project: string[]; personal: 
   ];
   const personal = [
     `Private personal instructions: ${state.personalRules.trim() ? 'loaded' : 'none'} (user configuration, never committed)`,
+    `Optional Go Jev decision gates: ${state.jevScope === 'personal' && state.jevProvider ? `${state.jevProvider} (personal project; availability checked on install)` : 'off'}`,
   ];
   return { project, personal };
 }

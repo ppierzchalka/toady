@@ -201,3 +201,21 @@ OpenCode respects `XDG_CONFIG_HOME`; Claude Code respects `CLAUDE_CONFIG_DIR`; C
 **Migration from older releases:** when setup is run again for a harness, previous `<!-- toady:start -->` and `<!-- spec-driven-scrum-team:toady:start -->` blocks are removed from recognized native/project files. Old settings in `toady/persona.json`, `spec-driven-scrum-team/persona.json`, or `.opencode/toady.config.json` are read for their `projectRules`; the obsolete `enabled` voice flag is discarded. A single `toady/instructions.json` is written privately for the harness. Known generated persona files and their OpenCode `instructions` references are retired when recognized. Other startup instructions, provider configuration and project conventions remain untouched. No Git history is rewritten, so previously committed generated files must be cleaned separately.
 
 **To apply or remove instructions:** use the interactive Personal instructions step, or pass `--additional-rules=<file>` / `--clear-additional-rules` with `--defaults`. Running setup with no imported rules still performs legacy cleanup. Relaunch the agent session after changing global instructions. Rules inside the prompt are guidance, not an authorization boundary: apply native least-privilege credentials and permissions for restricted services.
+
+## Optional Jev decision gates
+
+Jev is an **optional advisory** capability only for projects explicitly classified as personal. New projects default to **Work**, with Jev disabled and no external evaluator invoked. The Personal instructions step offers **Project scope: Work/Personal** and **Optional Jev: off/Zen/TypeSafe/OpenRouter**. This does not install a ninth agent; `decision-gates` is a dormant shared skill until enabled for this exact project.
+
+Non-interactive setup requires explicit consent: `--jev --jev-scope=personal --jev-provider=zen` (or `typesafe`/`openrouter`). Use `--no-jev` to revoke a prior project opt-in. There is no automatic provider selection, fallback, or cross-project inheritance. Project consent lives outside Git under `$XDG_CONFIG_HOME/toady/decision-gates/<hash>.json` (or `~/.config/toady/... `), keyed by the canonical local project path. Changing targets resets the TUI choice to Work; the new target must be explicitly opted in again. A different worktree does not inherit consent.
+
+| Provider | Environment credential | System One endpoint |
+| --- | --- | --- |
+| OpenCode Zen | `OPENCODE_API_KEY` | `https://opencode.ai/zen/v1/systemone` |
+| TypeSafe | `TYPESAFE_API_KEY` | `https://api.typesafe.ai/v1/systemone` |
+| OpenRouter | `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1/systemone` |
+
+The installer performs a small, bounded **typed System One capability probe** with the selected credentials before enabling. Missing credentials, rejected requests, rate limits and unsupported models leave Jev off; regular installation continues. Credentials are never persisted or printed. API access is separate from OpenCode Go's subscriptions; a Zen API key is not automatically available from Go.
+
+The runner rechecks the exact project consent and credentials every call, uses typed `choice` questions, treats malformed/low-confidence answers as `unknown`, and exposes only advisory results. It never approves tasks or deployment. Input must be limited to user-approved personal material. Never opt a corporate repository into an external service, even if a personal account has access. In managed work environments, setting `TOADY_JEV_DISABLE=1` provides an explicit local runtime kill switch.
+
+Because this is an external paid API, follow the provider's billing, rate-limit and data-use policies. OpenCode Zen, TypeSafe and OpenRouter are separate services and accounts.

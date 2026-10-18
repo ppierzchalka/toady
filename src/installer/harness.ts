@@ -22,7 +22,7 @@ export function supportsEffort(harness: Harness): boolean {
 }
 
 export function locateInstructions(body: string, harness: Harness): string {
-  return body.replace(/(?<![\w./-])skills\/(autonomous-implement|wayfinder|slice|refine|plan|project-setup|architecture-assess|security-assess|interface-assess|test-design|implement-task|review-change)\//g, (_, name: string) => HARNESS_LAYOUTS[harness].skills + '/' + name + '/');
+  return body.replace(/(?<![\w./-])skills\/(autonomous-implement|wayfinder|slice|refine|plan|project-setup|architecture-assess|security-assess|interface-assess|test-design|implement-task|review-change|decision-gates)\//g, (_, name: string) => HARNESS_LAYOUTS[harness].skills + '/' + name + '/');
 }
 
 export function applyHarnessChoice(metadata: Record<string, unknown>, choice: AgentChoice | undefined, harness: Harness): void {

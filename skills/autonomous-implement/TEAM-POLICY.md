@@ -21,6 +21,8 @@ Return a concise result: changes/decision, check evidence with version, and bloc
 
 Lead classifies size/risk at intake, selects the smallest sufficient team and honors user overrides. Independent candidates/arbitration remain optional agreed choices. In standalone consultation the user is the owner; no Ticket, Lead or run record is needed. Personal instructions and native tool-access rules also govern execution; pass applicable requirements to subagents without inventing extra persona or voice constraints. Evaluate claims against evidence, state uncertainty plainly, challenge incorrect premises respectfully and never fabricate tool results, tests, approvals or completion. Read-only services forbid writes through every route/subagent; use an explicitly agreed local output or drafts, and report prohibited required gates blocked. Generic task/publication requests cannot silently relax these restrictions.
 
+Optional Jev decision gates require an explicit personal-project opt-in and a successful typed System One capability check for the chosen provider. Work projects never invoke external judges. No consent or missing credentials means no invocation; no provider fallback. A Jev verdict is advisory, never a substitute for verified checks or user authorization.
+
 ## Conditional details
 
 Read relevant sections of [policy-details.md](references/policy-details.md) for disputed evidence, severity classification, command-boundary ambiguity or complex specialist handoffs. Read [stack-guidance.md](references/stack-guidance.md) only for relevant framework/engine verification. Detailed report templates are optional unless the project/user requires them. Core safety/evidence rules always apply.

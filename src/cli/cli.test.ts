@@ -17,7 +17,11 @@ describe('single-cwd CLI arguments', () => {
     });
     expect(parseArgs(['-d', '--clear-additional-rules'])).toMatchObject({ defaults: true, clearRules: true });
     expect(parseArgs(['--additional-rules=r.md'])).toMatchObject({ rulesFlag: 'r.md' });
-    expect(parseArgs([])).toMatchObject({ defaults: false, help: false });
+    expect(parseArgs([])).toMatchObject({ defaults: false, help: false, jev: undefined });
+    expect(parseArgs(['--defaults', '--jev', '--jev-scope=personal', '--jev-provider=zen'])).toMatchObject({ defaults: true, jev: true, jevScope: 'personal', jevProvider: 'zen' });
+    expect(parseArgs(['--defaults', '--no-jev'])).toMatchObject({ defaults: true, jev: false });
+    expect(() => parseArgs(['--jev'])).toThrow(/explicit/);
+    expect(() => parseArgs(['--jev-provider=zen'])).toThrow(/requires --jev/);
   });
 
   it('rejects positional targets with an actionable message', () => {
@@ -31,6 +35,7 @@ describe('single-cwd CLI arguments', () => {
 
   it('rejects malformed and conflicting flags before any writes', () => {
     expect(() => parseArgs(['--bogus'])).toThrow(/Unknown flag/);
+    expect(() => parseArgs(['--jev', '--no-jev'])).toThrow(/Choose --jev or --no-jev/);
     expect(() => parseArgs(['--toady'])).toThrow(/Unknown flag/);
     expect(() => parseArgs(['--additional-rules=a', '--additional-rules=b'])).toThrow(/one additional rules file/i);
     expect(() => parseArgs(['--additional-rules=a', '--clear-additional-rules'])).toThrow(/or clear rules/);

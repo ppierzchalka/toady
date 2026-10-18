@@ -12,6 +12,8 @@ Act as Analyst. Load [role instructions](../autonomous-implement/references/role
 4. Maintain the smallest useful set of configured artifacts: brief/direction, spec, glossary/domain description and ADRs for significant decisions. Do not create every document type by default or a task for every question.
 5. At a pause or meaningful milestone, persist the current state, source links, decisions, open questions and suggested next topic within authorized scope. If persistence is unavailable, return a clearly identified draft. On resumption read this state; do not restart discovery.
 
+Optional personal-project Jev evaluation is available only through the explicit Decision Gates opt-in. It is not a discovery authority: never treat a model-proposed assumption as an accepted user decision. Do not query Jev on each exploration turn.
+
 The user decides when to explore further or move on. Suggest Slice for selected scope; do not create a backlog or start implementation automatically. Partial direction is valid and does not imply implementation readiness.
 
 ## Resume state

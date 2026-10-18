@@ -17,6 +17,19 @@ function base(overrides: Partial<SessionState> = {}): SessionState {
 }
 
 describe('installer session reducer', () => {
+  it('requires explicit personal scope before selecting optional Jev provider', () => {
+    const initial = base({ step: 'instructions' });
+    expect(initial.jevScope).toBe('work');
+    expect(initial.jevProvider).toBeNull();
+    expect(reducer(initial, { type: 'CYCLE_JEV_PROVIDER' }).jevProvider).toBeNull();
+    const privateState = reducer(initial, { type: 'SET_JEV_SCOPE', scope: 'personal' });
+    expect(privateState.jevScope).toBe('personal');
+    const selected = reducer(privateState, { type: 'CYCLE_JEV_PROVIDER' });
+    expect(selected.jevProvider).toBe('zen');
+    expect(reducer(selected, { type: 'CYCLE_JEV_PROVIDER' }).jevProvider).toBe('typesafe');
+    expect(reducer(reducer(selected, { type: 'SET_JEV_SCOPE', scope: 'work' }), { type: 'CYCLE_JEV_PROVIDER' }).jevProvider).toBeNull();
+    expect(selected.jevTouched).toBe(true);
+  });
   it('automatically applies predefined models and efforts when discovery completes', () => {
     const state = reducer(base({ config: {} }), {
       type: 'SET_DISCOVERY',
