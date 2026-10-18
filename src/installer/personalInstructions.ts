@@ -108,11 +108,10 @@ function managedBlock(source: string, replacement: string): string {
   if (!matches.length) {
     return replacement ? source + (source && !source.endsWith('\n') ? '\n' : '') + '\n' + replacement + '\n' : source;
   }
-  let result = source, first = true;
+  let result = source;
   for (const match of [...matches].reverse()) {
     const body = match === matches[0] ? replacement : '';
     result = result.slice(0, match.first) + body + result.slice(match.last);
-    first = false;
   }
   return result;
 }
