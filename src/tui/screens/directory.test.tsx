@@ -247,10 +247,11 @@ describe('target browser activation', () => {
   });
 });
 
-describe('toady legend', () => {
-  it('mentions Enter for the Toady toggle and never Space', () => {
+describe('personal instructions shortcuts', () => {
+  it('advertises activation without a voice toggle', () => {
     const shortcuts = instructionsShortcuts(stateFor());
-    expect(shortcuts.join(' ')).toContain('Enter toggles Toady');
+    expect(shortcuts.join(' ')).toContain('Enter activate');
+    expect(shortcuts.join(' ')).not.toContain('Toady voice');
     expect(shortcuts.join(' ')).not.toContain('Space');
   });
 });
