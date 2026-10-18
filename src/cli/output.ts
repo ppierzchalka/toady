@@ -4,7 +4,7 @@ import type { BuildInfo } from './buildInfo.js';
 /** Durable console report after the terminal is restored. No keypress gates. */
 export function reportInstall(result: InstallAllResult, harness: string, build: BuildInfo): void {
   console.log(`\nInstalled ${harness} into ${result.target} [build ${build.tag}]`);
-  for (const path of result.personaPaths) console.log(`  wrote  ${path}`);
+  for (const path of result.instructionsPaths) console.log(`  wrote  ${path}`);
   for (const path of result.team.written) console.log(`  wrote  ${path}`);
   for (const path of result.team.preserved) console.log(`  kept   ${path} (instructions preserved)`);
   for (const path of result.team.skillPaths) console.log(`  wrote  ${path}`);
