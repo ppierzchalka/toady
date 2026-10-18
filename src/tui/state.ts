@@ -101,6 +101,7 @@ export interface SessionState {
   cursor: number;
   editorMode: 'list' | 'custom' | 'path';
   personalRules: string;
+  jevRequested?: boolean;
   /** True once personal instructions are edited; used to resolve saved harness settings. */
   rulesTouched: boolean;
   rulesBrowser: RulesBrowserState;
@@ -129,6 +130,7 @@ export interface InitialOptions {
   config: TeamConfig;
   overwrite: Record<string, boolean>;
   personalRules: string;
+  jevRequested?: boolean;
   skillConflicts: string[];
   vscodeKept: boolean;
 }
@@ -153,6 +155,7 @@ export function createInitialState(options: InitialOptions): SessionState {
     cursor: 0,
     editorMode: 'list',
     personalRules: options.personalRules,
+    jevRequested: options.jevRequested ?? false,
     rulesTouched: false,
     rulesBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
     targetBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
@@ -191,6 +194,7 @@ export type Action =
   | { type: 'SET_DRAFT'; for: DraftKind; value: string; cursor?: number }
   | { type: 'SET_CURSOR'; cursor: number }
   | { type: 'CLEAR_DRAFT' }
+  | { type: 'TOGGLE_JEV' }
   | { type: 'SET_RULES'; rules: string }
   | { type: 'CLEAR_RULES' }
   | { type: 'OPEN_RULES_BROWSER' }
@@ -414,6 +418,9 @@ export function reducer(state: SessionState, action: Action): SessionState {
       // Local cancel drops the draft and its draft-owned validation error;
       // unrelated errors never coexist with an active draft.
       return { ...state, draft: '', draftFor: null, cursor: 0, editorMode: 'list', error: null };
+    case 'TOGGLE_JEV':
+      if (state.harness !== 'opencode' || !state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m))) return state;
+      return { ...state, jevRequested: !state.jevRequested };
     case 'SET_RULES':
       return { ...state, personalRules: action.rules, rulesTouched: true, rulesBrowser: { ...state.rulesBrowser, open: false, error: null }, draft: '', draftFor: null, cursor: 0, error: null };
     case 'CLEAR_RULES':
