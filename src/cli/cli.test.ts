@@ -18,8 +18,10 @@ describe('single-cwd CLI arguments', () => {
     expect(parseArgs(['-d', '--clear-additional-rules'])).toMatchObject({ defaults: true, clearRules: true });
     expect(parseArgs(['--additional-rules=r.md'])).toMatchObject({ rulesFlag: 'r.md' });
     expect(parseArgs([])).toMatchObject({ defaults: false, help: false, jev: undefined });
-    expect(parseArgs(['--defaults', '--jev'])).toMatchObject({ defaults: true, jev: true });
+    expect(parseArgs(['--defaults', '--jev', '--jev-scope=personal', '--jev-provider=zen'])).toMatchObject({ defaults: true, jev: true, jevScope: 'personal', jevProvider: 'zen' });
     expect(parseArgs(['--defaults', '--no-jev'])).toMatchObject({ defaults: true, jev: false });
+    expect(() => parseArgs(['--jev'])).toThrow(/explicit/);
+    expect(() => parseArgs(['--jev-provider=zen'])).toThrow(/requires --jev/);
   });
 
   it('rejects positional targets with an actionable message', () => {
