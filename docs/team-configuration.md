@@ -29,7 +29,7 @@ The picked target must exist, be a real directory (no symlinks) and be
 readable; invalid targets are rejected recoverably in the picker, and no
 folder is ever created for you.
 
-Every write scope — team files, persona profile and editor settings — is
+Every write scope — team files, personal instructions and editor settings — is
 preflighted before the first write. Unowned skill collisions are listed for one
 in-shell adoption decision. This is not a filesystem transaction: disk
 errors/concurrent changes may leave the target partially written, reported
@@ -71,9 +71,8 @@ Available installer flags:
 | --- | --- |
 | `--harness=<name>` | `opencode` \| `claude-code` \| `codex` \| `antigravity` \| `copilot`; optional — omitted means `opencode` (including with `--defaults`); chosen interactively otherwise |
 | `--defaults`, `-d` | Noninteractive install with default models; always installs into the current directory |
-| `--toady` / `--no-toady` | Enable or disable the cartoon-minion voice in the private startup persona |
-| `--additional-rules=<file>` (also `--toady-rules=<file>`) | Load extra rules into the private persona; relative paths resolve against the invocation directory; regular Markdown/text files up to 64 KiB |
-| `--clear-additional-rules` (also `--clear-toady-rules`) | Clear imported rules |
+| `--additional-rules=<file>` | Load personal instructions; relative paths resolve against the invocation directory; regular Markdown/text files up to 64 KiB |
+| `--clear-additional-rules` | Clear personal instructions |
 | `--replace-skills` | Adopt/replace unowned shipped skill folders without prompting (noninteractive collision handling) |
 | `--help`, `-h` | Show help (verifies freshness first, like every other launch) |
 
@@ -87,7 +86,7 @@ npx --yes --package=https://github.com/ppierzchalka/toady/releases/download/curr
 
 From a target directory, `--defaults` installs noninteractively into the
 current directory without opening the setup; model defaults apply, while the
-user profile retains its saved persona/rules unless corresponding flags
+user profile retains its saved instructions unless corresponding flags
 explicitly override them.
 
 A repository checkout (`git clone` + `npm run setup`) is the toolkit
@@ -97,7 +96,7 @@ release launcher above.
 
 ## Installation ownership and paths
 
-Validate all team destinations and persona changes before the first installation write. Reject symlink roots/children, dangling links, escaping paths, incompatible file types and malformed known configuration. Recheck skill paths during copying. Source skills must use regular files/directories. These checks prevent ordinary linked-destination writes; this is not an OS sandbox or a defense against a hostile process changing paths concurrently.
+Validate all team destinations and personal-instructions changes before the first installation write. Reject symlink roots/children, dangling links, escaping paths, incompatible file types and malformed known configuration. Recheck skill paths during copying. Source skills must use regular files/directories. These checks prevent ordinary linked-destination writes; this is not an OS sandbox or a defense against a hostile process changing paths concurrently.
 
 Each installed skill has a .team-owner.json marker. New installs write `{"owner":"toady"}`; markers reading `spec-driven-scrum-team` are recognized as owned without an adoption prompt and refreshed to the current marker on reinstall. Existing unmarked folders (including previous versions and external packages with the same name) require explicit adoption. Interactive setup asks once for listed collisions; noninteractive setup stops unless you supply `--replace-skills`. Review the listed folders first: adoption authorizes overwriting their shipped paths. Other skills are untouched. Custom contents within owned shipped paths can be replaced during refresh; back up intentional skill edits first. No folder deletion is automatic.
 
@@ -183,30 +182,22 @@ Only enabled roles consume work for a given run; the allocation changes naturall
 
 **Explicit upgrades:** for difficult bugs, disputed review findings, or a sensitive threat model that exceeds the current model's demonstrated capability, Lead can recommend a stronger model for that role and bounded task. Sol, Terra, or `openai/gpt-6-luna` are available choices in the checked catalog. Raising effort above the role's confirmed setting is also a separate, explicit user choice, not an automatic response to every failure. Record approved reconfiguration in the run contract and return to the normal defaults when the exception is finished.
 
-## Optional Toady voice
+## Personal instructions
 
-The personal instructions step starts with a native Toady voice checkbox: **Enter** toggles it (Space toggles checkboxes too). Its saved state is preselected; the following menu lets you reopen this setting. Alternatively, the noninteractive equivalent is listed under
-[Installation options](#installation-options). Git user.name is read locally with Master fallback; the chosen name becomes persona context for the selected model. Persona tone affects user-facing conversation, not source/docs or internal handoff style. Toady voice controls the cartoon-minion style only; it adds no coding or commit defaults.
+The third installer step manages **user-authored instructions only**. There is no persona, role-playing voice, character mode or tone toggle. Select **Browse for a rules file**, **Enter a rules file path**, or **Clear additional rules**. Markdown and text files up to 64 KiB are accepted; contents are inserted verbatim as personal instructions (no generated coding defaults or stylistic instructions). The browser validates selected files and preserves the current rules when cancelled. Do not include credentials or secrets.
 
-Persona and imported rules are **personal, user-wide settings** for the selected harness. They apply across projects on this computer. Team agents and skills are still installed per repository. No new persona, rule content or persona-state file is written into a repo.
+Personal instructions are **user- and harness-scoped**, applied to projects on this computer, not committed to repositories. Team agents and skills remain installed per project.
 
-| Harness | Private startup instructions |
+| Harness | Native user startup file |
 | --- | --- |
-| OpenCode | `~/.config/opencode/AGENTS.md` (managed block in private user configuration) |
-| Claude Code | Managed block in `~/.claude/CLAUDE.md` |
-| Codex | Managed block in `~/.codex/AGENTS.override.md` if present, otherwise `~/.codex/AGENTS.md` |
-| Copilot CLI | Managed block in `~/.copilot/copilot-instructions.md` |
-| Antigravity | Managed block in `~/.gemini/GEMINI.md` |
+| OpenCode | `~/.config/opencode/AGENTS.md` (managed instructions block) |
+| Claude Code | `~/.claude/CLAUDE.md` |
+| Codex | `~/.codex/AGENTS.override.md` when present, otherwise `~/.codex/AGENTS.md` |
+| Copilot CLI | `~/.copilot/copilot-instructions.md` |
+| Antigravity | `~/.gemini/GEMINI.md` |
 
-OpenCode respects `XDG_CONFIG_HOME`; Claude Code respects `CLAUDE_CONFIG_DIR`; Codex respects `CODEX_HOME`. Defaults derive from the OS user home, including macOS and Windows. OpenCode loads the managed persona block from its **global user `AGENTS.md`**, supported by V1 and V2. This is outside the repository; project `AGENTS.md` is not used to install personal rules. Existing global instructions are preserved. On update, the installer removes its old absolute `instructions` reference from existing user JSON/JSONC configs and retires its generated persona file. Provider routing, comments and other references stay unchanged. V2 currently accepts `instructions` but does not load its entries; see [OpenCode V2 instructions](https://opencode.ai/v2/docs/instructions/).
+OpenCode respects `XDG_CONFIG_HOME`; Claude Code respects `CLAUDE_CONFIG_DIR`; Codex respects `CODEX_HOME`. User instructions are placed within a managed `<!-- toady:instructions:start -->` / `<!-- toady:instructions:end -->` block, preserving unrelated content in the native file. The installer does not configure VS Code Copilot's separate personal instruction settings. Under OpenCode, global `AGENTS.md` is used rather than a config `instructions` entry.
 
-Copilot's file here is a **CLI** user profile; the installer does not configure VS Code/other IDE personal instruction settings. Those clients may need their own user settings. Other adapters use native user instruction files, which may also be discovered by compatible tools.
+**Migration from older releases:** when setup is run again for a harness, previous `<!-- toady:start -->` and `<!-- spec-driven-scrum-team:toady:start -->` blocks are removed from recognized native/project files. Old settings in `toady/persona.json`, `spec-driven-scrum-team/persona.json`, or `.opencode/toady.config.json` are read for their `projectRules`; the obsolete `enabled` voice flag is discarded. A single `toady/instructions.json` is written privately for the harness. Known generated persona files and their OpenCode `instructions` references are retired when recognized. Other startup instructions, provider configuration and project conventions remain untouched. No Git history is rewritten, so previously committed generated files must be cleaned separately.
 
-During an update, the installer migrates old settings, removes its recognized managed blocks from project instruction files, removes old OpenCode persona references, and retires recognized generated persona files and repo state. Unrelated project conventions are preserved. It does not rewrite Git history: personal content committed earlier remains in that history. The target's `.gitignore` gains a managed block that ignores the installed agent, skills and config paths; all other lines are preserved. `.vscode/` is never ignore-listed: the managed editor settings stay visible to Git.
-
-After confirming the Toady checkbox, **Additional rules (loaded to persona)** is always available in the personal instructions menu. Choose **Browse for a rules file** to navigate folders (including parent folders) and select a Markdown/text file. The browser shows its current absolute directory, validates the selected file and leaves existing rules unchanged when you go back. **Enter a rules file path** remains available. Import instructions for TypeScript, custom or Conventional Commits, formatting, Azure DevOps read-only or other guidelines. The content is embedded in the same private startup persona; no repo policy document is installed. Rules load even when Toady is off. Toggling Toady changes only the voice; clearing additional rules removes only imported instructions. Both settings are retained independently across reinstall. Do not include credentials/secrets. Existing company/runtime restrictions remain authoritative; applicable rules propagate to subagents without the persona voice.
-
-Noninteractive: from the target directory run the launcher form documented
-under [Installation options](#installation-options). Relative rules paths resolve against the installation (invocation) directory; absolute paths are also accepted. Rules sources must be regular Markdown/text files up to 64 KiB; managed markers from either product namespace are rejected. Named read-only service restrictions require native least-privilege credentials/tools for enforcement.
-
-Preserve unrelated rules/provider settings. Disabling Toady voice removes its style; the startup entry remains while additional rules are present. Clearing both removes the managed block/entry. State is stored privately under each harness user directory in `toady/persona.json` (a prior `spec-driven-scrum-team/persona.json` is recognized as fallback and migrated on reinstall; when both exist the new settings take precedence); shared native rules may be discovered by other tools. Use a fresh session after changes. Installing with voice off still installs the toolkit; additional rules continue to load independently of the voice setting.
+**To apply or remove instructions:** use the interactive Personal instructions step, or pass `--additional-rules=<file>` / `--clear-additional-rules` with `--defaults`. Running setup with no imported rules still performs legacy cleanup. Relaunch the agent session after changing global instructions. Rules inside the prompt are guidance, not an authorization boundary: apply native least-privilege credentials and permissions for restricted services.
