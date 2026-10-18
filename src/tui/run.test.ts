@@ -24,8 +24,7 @@ describe('installer lifecycle', () => {
         harness: 'opencode',
         config: {},
         overwrite: {},
-        toadyMode: false,
-        toadyRules: '',
+                personalRules: '',
         skillConflicts: [],
         vscodeKept: true,
       });
@@ -69,8 +68,7 @@ describe('installer lifecycle', () => {
       harness: 'opencode',
       config: {},
       overwrite: {},
-      toadyMode: false,
-      toadyRules: '',
+            personalRules: '',
       skillConflicts: [],
       vscodeKept: true,
     });
@@ -90,8 +88,7 @@ describe('installer lifecycle', () => {
       harness: 'opencode',
       config: {},
       overwrite: {},
-      toadyMode: false,
-      toadyRules: '',
+            personalRules: '',
       skillConflicts: [],
       vscodeKept: true,
     });
@@ -122,8 +119,7 @@ describe('installer lifecycle', () => {
         harness: 'opencode',
         config: {},
         overwrite: {},
-        toadyMode: false,
-        toadyRules: '',
+                personalRules: '',
         skillConflicts: [],
         vscodeKept: true,
       });
@@ -149,8 +145,7 @@ describe('installer lifecycle', () => {
         harness: 'opencode',
         config: {},
         overwrite: {},
-        toadyMode: false,
-        toadyRules: '',
+                personalRules: '',
         skillConflicts: [],
         vscodeKept: true,
       });
