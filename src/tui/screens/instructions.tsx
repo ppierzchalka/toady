@@ -173,7 +173,7 @@ export function InstructionsScreen(options: { state: SessionState; width: number
   }
   return (
     <Box flexDirection="column">
-      {!compact && <Text color={palette.cream} bold>Instructionsl instructions</Text>}
+      {!compact && <Text color={palette.cream} bold>Personal instructions</Text>}
       {!compact && (
         <Text color={palette.parchment} wrap="wrap">{INSTRUCTIONS_NOTE}</Text>
       )}
