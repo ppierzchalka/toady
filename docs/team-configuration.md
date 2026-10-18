@@ -202,12 +202,20 @@ OpenCode respects `XDG_CONFIG_HOME`; Claude Code respects `CLAUDE_CONFIG_DIR`; C
 
 **To apply or remove instructions:** use the interactive Personal instructions step, or pass `--additional-rules=<file>` / `--clear-additional-rules` with `--defaults`. Running setup with no imported rules still performs legacy cleanup. Relaunch the agent session after changing global instructions. Rules inside the prompt are guidance, not an authorization boundary: apply native least-privilege credentials and permissions for restricted services.
 
-## Optional Jev decision gates (OpenCode Go only)
+## Optional Jev decision gates
 
-Jev validation is **off by default**. The Personal instructions screen has a `Jev decision gates (OpenCode Go only)` checkbox; `--jev` or `--no-jev` is available with `--defaults`. The option is inactive for Claude Code, Codex, Antigravity and Copilot. The option cannot be turned on in the TUI if OpenCode's authenticated Go model catalog does not contain `opencode-go/jev-*`.
+Jev is an **optional advisory** capability only for projects explicitly classified as personal. New projects default to **Work**, with Jev disabled and no external evaluator invoked. The Personal instructions step offers **Project scope: Work/Personal** and **Optional Jev: off/Zen/TypeSafe/OpenRouter**. This does not install a ninth agent; `decision-gates` is a dormant shared skill until enabled for this exact project.
 
-Enabling Jev requires both an authenticated Go provider and a supported `opencode run --model opencode-go/jev-* --format json` capability test. Merely advertising a model never permits activation. A missing model, failed capability test, expired subscription or unsupported interface leaves the option **disabled**, without trying another provider. The installer does not use the Zen System One endpoint and does not ask for or export an API key. The private setting is stored in the user's OpenCode config under `toady/decision-gates.json`, not the repository; `--no-jev` disables it, and no settings are created for a never-enabled installation.
+Non-interactive setup requires explicit consent: `--jev --jev-scope=personal --jev-provider=zen` (or `typesafe`/`openrouter`). Use `--no-jev` to revoke a prior project opt-in. There is no automatic provider selection, fallback, or cross-project inheritance. Project consent lives outside Git under `$XDG_CONFIG_HOME/toady/decision-gates/<hash>.json` (or `~/.config/toady/... `), keyed by the canonical local project path. Changing targets resets the TUI choice to Work; the new target must be explicitly opted in again. A different worktree does not inherit consent.
 
-The installed `decision-gates` skill offers three advisory checkpoints: readiness, plan alignment and outcome completion. Its local runner independently rechecks OpenCode Go access for every call; no run occurs unless the setting is enabled. Runtime failure yields `unknown`/`skipped`, not approval. Required checks and human authorization are unchanged. The runner accepts only concise user-approved evidence, and uses a temporary owner-only file to attach that evidence to the native OpenCode process; never pass secrets or sensitive corporate material. Go API/model availability may change. The feature may remain unavailable even when you have an active Go subscription.
+| Provider | Environment credential | System One endpoint |
+| --- | --- | --- |
+| OpenCode Zen | `OPENCODE_API_KEY` | `https://opencode.ai/zen/v1/systemone` |
+| TypeSafe | `TYPESAFE_API_KEY` | `https://api.typesafe.ai/v1/systemone` |
+| OpenRouter | `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1/systemone` |
 
-Official availability: [Go](https://docs.opencode.ai/docs/go/) lists the Go model catalog; [Zen Jev](https://docs.opencode.ai/docs/zen/#jev) is a separate paid API and is intentionally NOT used.
+The installer performs a small, bounded **typed System One capability probe** with the selected credentials before enabling. Missing credentials, rejected requests, rate limits and unsupported models leave Jev off; regular installation continues. Credentials are never persisted or printed. API access is separate from OpenCode Go's subscriptions; a Zen API key is not automatically available from Go.
+
+The runner rechecks the exact project consent and credentials every call, uses typed `choice` questions, treats malformed/low-confidence answers as `unknown`, and exposes only advisory results. It never approves tasks or deployment. Input must be limited to user-approved personal material. Never opt a corporate repository into an external service, even if a personal account has access. In managed work environments, setting `TOADY_JEV_DISABLE=1` provides an explicit local runtime kill switch.
+
+Because this is an external paid API, follow the provider's billing, rate-limit and data-use policies. OpenCode Zen, TypeSafe and OpenRouter are separate services and accounts.
