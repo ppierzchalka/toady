@@ -50,7 +50,7 @@ export function instructionsFocusIds(state: SessionState, entries: BrowserEntry[
   if (state.rulesBrowser.open) {
     return [...entries.map((entry) => entry.id), '__hidden__', '__cancel__'];
   }
-  return ['rules-browse', 'rules-path', 'rules-clear', '__next__', '__back__', 'jev'];
+  return ['rules-browse', 'rules-path', 'rules-clear', '__next__', '__back__', 'jev-scope', 'jev-provider'];
 }
 
 export function instructionsBrowserItems(entries: BrowserEntry[], showHidden: boolean): MenuItem[] {
@@ -68,11 +68,12 @@ export function instructionsItems(state: SessionState): MenuItem[] {
     { id: 'rules-clear', label: 'Clear additional rules', hint: 'leave existing repository conventions unchanged' },
     { id: '__next__', label: 'Next: review and install' },
     { id: '__back__', label: 'Back to agents and models' },
-    { id: 'jev', label: 'Jev decision gates (OpenCode Go only)',
-      hint: state.harness !== 'opencode' ? 'unavailable for this harness' :
-        !state.discovery.models.some(m => /^opencode-go\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'unavailable; no authenticated Go Jev model detected' :
-        state.jevRequested ? 'requested; capability tested before install' : 'off (optional)',
-      state: state.harness === 'opencode' && state.jevRequested && state.discovery.models.some(m => /^opencode-go\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'checked' : 'unchecked' },
+    { id: 'jev-scope', label: 'Project scope: ' + (state.jevScope === 'personal' ? 'Personal' : 'Work (Jev forbidden)'),
+      hint: 'Enter to change; no external evaluator for work projects' },
+    { id: 'jev-provider', label: 'Optional Jev: ' + (state.jevScope === 'work' ? 'off' : (state.jevProvider ?? 'off')),
+      hint: state.jevScope === 'work' ? 'disabled for work; classify project as personal first' :
+        'Enter: off → Zen → TypeSafe → OpenRouter; credentials are verified before enabling',
+      state: state.jevScope === 'personal' && state.jevProvider ? 'checked' : 'unchecked' },
   ];
 }
 
@@ -90,7 +91,8 @@ export function activateInstructions(state: SessionState, id: string, entries: B
     if (entry.isDirectory) return { type: 'BROWSER_NAV', dir: entry.id };
     return commitBrowserFile(entry.id);
   }
-  if (id === 'jev') return { type: 'TOGGLE_JEV' };
+  if (id === 'jev-scope') return { type: 'SET_JEV_SCOPE', scope: state.jevScope === 'personal' ? 'work' : 'personal' };
+  if (id === 'jev-provider') return { type: 'CYCLE_JEV_PROVIDER' };
   if (id === 'rules-browse') return { type: 'OPEN_RULES_BROWSER' };
   if (id === 'rules-path') return { type: 'SET_DRAFT', for: 'rules-path', value: '' };
   if (id === 'rules-clear') return { type: 'CLEAR_RULES' };
