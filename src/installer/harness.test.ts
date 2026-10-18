@@ -22,7 +22,7 @@ describe('harness installations', () => {
     });
     const layout = HARNESS_LAYOUTS[harness];
     expect(result.written).toHaveLength(8);
-    expect(result.skillPaths).toHaveLength(12);
+    expect(result.skillPaths).toHaveLength(13);
     const ignore = readFileSync(join(targetDir, '.gitignore'), 'utf8');
     expect(ignore).toContain('# user rules\nprivate/\n');
     for (const entry of [layout.agents + '/', layout.skills + '/', layout.config]) {
