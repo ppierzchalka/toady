@@ -62,8 +62,7 @@ function mount(target: string, options: {
     harness: 'opencode',
     config: {},
     overwrite: {},
-    toadyMode: false,
-    toadyRules: '',
+        personalRules: '',
     skillConflicts: [],
     vscodeKept: true,
     ...options.overrides,
@@ -151,7 +150,7 @@ async function expectInstallLabel(rendered: Rendered, target: string): Promise<v
 async function toReview(rendered: Rendered): Promise<void> {
   await rendered.send(KEYS.end); // __next__
   await rendered.send(KEYS.enter); // persona
-  for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down); // __next__
+  for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down); // __next__
   await rendered.send(KEYS.enter); // review
 }
 
@@ -517,25 +516,21 @@ describe('single-target picker flow', () => {
 });
 
 describe('target picker small viewport', () => {
-  it('advertises Enter (never Space) while Space still toggles the checkbox', async () => {
+  it('offers only custom instructions and no voice toggle', async () => {
     const target = workspace();
     const mounted = mount(target);
     const { rendered } = mounted;
     await mounted.ready();
     await rendered.send(KEYS.enter); // agents
-    await toReview(rendered); // persona is on the way; go back one step
-    await rendered.send(KEYS.end); // back row
-    await rendered.send(KEYS.enter); // persona
+    await toReview(rendered);
+    await rendered.send(KEYS.end); // back
+    await rendered.send(KEYS.enter); // instructions
     let text = stripAnsi(rendered.frame());
-    expect(text).toContain('Enter toggles Toady');
-    expect(text).not.toContain('Space toggles Toady');
-    // Focus starts on the Toady row: Space keeps its checkbox semantics.
-    await rendered.send(KEYS.home);
-    text = stripAnsi(await rendered.send(KEYS.space));
-    expect(text).toContain('on — cartoon');
-    // Enter toggles back off.
+    expect(text).toContain('Browse for a rules file');
+    expect(text).not.toContain('Toady voice');
+    await rendered.send(KEYS.home); // browse
     text = stripAnsi(await rendered.send(KEYS.enter));
-    expect(text).toContain('off');
+    expect(text).toContain('Directory:');
   });
 });
 
