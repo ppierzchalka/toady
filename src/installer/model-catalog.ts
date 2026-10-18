@@ -10,11 +10,21 @@ export interface ModelEntry {
 
 const ANSI_RE = /\x1b\[[0-9;]*m/g;
 
-const CREDENTIAL_ALIASES: Record<string, string> = {
-  'opencode-zen': 'opencode',
-  'opencode-console': 'opencode',
-  'opencode-go': 'opencode-go',
+const CREDENTIAL_ALIASES: Record<string, string[]> = {
+  'opencode': ['opencode', 'opencode-go'],
+  'opencode-zen': ['opencode'],
+  'opencode-console': ['opencode', 'opencode-go'],
+  'opencode-go': ['opencode-go'],
 };
+
+function addProviderIds(ids: Set<string>, slugOrId: string): void {
+  const mapped = CREDENTIAL_ALIASES[slugOrId];
+  if (mapped) {
+    for (const id of mapped) ids.add(id);
+  } else {
+    ids.add(slugOrId);
+  }
+}
 
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -35,8 +45,7 @@ export function parseAuthList(output: string): string[] {
         .replace(/\s+(api|provider|oauth)$/i, '')
         .trim();
       if (!name) continue;
-      const slug = slugify(name);
-      ids.add(CREDENTIAL_ALIASES[slug] ?? slug);
+      addProviderIds(ids, slugify(name));
       continue;
     }
     // OpenCode 2 prints a plain table row per credential: `<Name>  <Type>  stored`.
@@ -44,8 +53,7 @@ export function parseAuthList(output: string): string[] {
     if (cells.length < 2 || cells[cells.length - 1] !== 'stored') continue;
     const name = cells[0].trim();
     if (!name) continue;
-    const slug = slugify(name);
-    ids.add(CREDENTIAL_ALIASES[slug] ?? slug);
+    addProviderIds(ids, slugify(name));
   }
   return [...ids];
 }
@@ -59,7 +67,7 @@ export function parseAuthExport(output: string): string[] {
       if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
       const integrationID = (entry as { integrationID?: unknown }).integrationID;
       if (typeof integrationID !== 'string' || !integrationID) continue;
-      ids.add(CREDENTIAL_ALIASES[integrationID] ?? integrationID);
+      addProviderIds(ids, integrationID);
     }
     return [...ids];
   } catch {
@@ -96,6 +104,7 @@ export function availableModels(
 
 const ENV_PROVIDER_KEYS: Record<string, string[]> = {
   OPENAI_API_KEY: ['openai'],
+  OPENCODE_API_KEY: ['opencode', 'opencode-go'],
   ANTHROPIC_API_KEY: ['anthropic'],
   GOOGLE_API_KEY: ['google', 'google-vertex'],
   GEMINI_API_KEY: ['google'],

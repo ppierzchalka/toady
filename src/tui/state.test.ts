@@ -22,19 +22,19 @@ describe('installer session reducer', () => {
       type: 'SET_DISCOVERY',
       discovery: {
         status: 'ready',
-        models: ['openai/gpt-6.1-sol', 'openai/gpt-6-luna', 'opencode-go/deepseek-v4-pro', 'opencode-go/deepseek-v4-flash', 'opencode-go/muse-spark-1.3-contributor'],
+        models: ['openai/gpt-6.1-sol', 'openai/gpt-6-luna', 'opencode-go/gemini-4-argon-contributor', 'opencode-go/deepseek-v4-pro'],
         detail: '',
       },
     });
     expect(state.config).toEqual({
       analyst: { model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' },
       lead: { model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' },
-      architect: { model: 'openai/gpt-6-luna', reasoningEffort: 'xhigh' },
-      security: { model: 'opencode-go/deepseek-v4-pro', reasoningEffort: 'high' },
+      architect: { model: 'openai/gpt-6-luna', reasoningEffort: 'high' },
+      security: { model: 'openai/gpt-6-luna', reasoningEffort: 'high' },
       ux: { model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' },
-      tester: { model: 'opencode-go/muse-spark-1.3-contributor', reasoningEffort: 'medium' },
-      developer: { model: 'opencode-go/muse-spark-1.3-contributor', reasoningEffort: 'medium' },
-      reviewer: { model: 'opencode-go/deepseek-v4-flash', reasoningEffort: 'medium' },
+      tester: { model: 'opencode-go/gemini-4-argon-contributor', reasoningEffort: 'medium' },
+      developer: { model: 'opencode-go/deepseek-v4-pro', reasoningEffort: 'medium' },
+      reviewer: { model: 'opencode-go/deepseek-v4-pro', reasoningEffort: 'high' },
     });
     expect(state.settingsTouched).toBe(false);
   });
@@ -116,11 +116,11 @@ describe('installer session reducer', () => {
     expect(state.notice).toContain('Reset analyst');
   });
 
-  it('keeps the current choice when no default is available', () => {
-    let state = base({ discovery: { status: 'ready', models: [], detail: '' }, config: { ux: { model: 'mine/model' } } });
+  it('resets to inherited model when no default is available', () => {
+    let state = base({ discovery: { status: 'ready', models: ['google-vertex/gemini-2.5-pro'], detail: '' }, config: { ux: { model: 'mine/model' } } });
     state = reducer(state, { type: 'RESET_AGENT', name: 'ux' });
-    expect(state.config.ux?.model).toBe('mine/model');
-    expect(state.notice).toContain('keeping current choice');
+    expect(state.config.ux).toEqual({});
+    expect(state.notice).toContain('inherited model');
   });
 
   it('restores the exact draft, focus, search and scroll after quit-continue', () => {

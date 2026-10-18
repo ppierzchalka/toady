@@ -56,6 +56,11 @@ describe('parseAuthList', () => {
     expect(ids).toEqual(expect.arrayContaining(['opencode-go', 'openai', 'opencode']));
   });
 
+  it('enables both opencode and opencode-go when OpenCode Console is connected', () => {
+    const consoleOnly = `OpenCode Console  Default                     stored\n`;
+    expect(parseAuthList(consoleOnly)).toEqual(['opencode', 'opencode-go']);
+  });
+
   it('ignores the v1 credential summary and unrelated lines', () => {
     expect(parseAuthList('└  2 credentials\nsome random text\n')).toEqual([]);
     expect(parseAuthList('OpenCode Go  API key  stored now\n')).toEqual([]);
@@ -103,6 +108,16 @@ describe('availableModels', () => {
 
   it('returns only models from providers authed through the OpenCode 2 table', () => {
     expect(availableModels(V2_AUTH_OUTPUT, REAL_MODELS_OUTPUT)).toEqual(AUTHED_MODELS);
+  });
+
+  it('discovers opencode-go/gemini-4-argon-contributor when signed in with OpenCode Console only', () => {
+    const auth = 'OpenAI            OpenAI                      stored\nOpenCode Console  Default                     stored\n';
+    const models = 'openai/gpt-6.1-sol\nopencode-go/gemini-4-argon-contributor\nopencode/gemini-4-argon\ngoogle-vertex/gemini-2.5-pro\n';
+    expect(availableModels(auth, models)).toEqual([
+      'openai/gpt-6.1-sol',
+      'opencode-go/gemini-4-argon-contributor',
+      'opencode/gemini-4-argon',
+    ]);
   });
 
   it('resolves providers from the auth export alone', () => {

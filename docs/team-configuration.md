@@ -153,30 +153,28 @@ Optional usage reporting accepts sanitized actual aggregates, tracks coverage/un
 
 ## OpenCode provider-balanced model defaults
 
-The default allocation puts OpenAI capacity into planning, architecture, and UX; OpenCode Go handles implementation/tests, and OpenCode Go/Zen handles review/security. Effort is selected per role rather than raised uniformly. It is a routing policy, not a benchmark or a guarantee about a model's capabilities, usage limits, or billing.
+The default allocation puts OpenAI capacity into planning, architecture, security, and UX; OpenCode Go handles tests, implementation, and review. Effort is selected per role rather than raised uniformly. It is a routing policy, not a benchmark or a guarantee about a model's capabilities, usage limits, or billing.
 
 | Agent | Preferred model | Effort | Workload rationale |
 | --- | --- | --- | --- |
 | Analyst | `openai/gpt-6.1-sol` | medium | Direction, bounded refinement, specs, Tickets and tracker conventions |
 | Lead | `openai/gpt-6.1-sol` | medium | Execution scheduling, run configuration and coordination |
-| Architect | `openai/gpt-6-luna` | xhigh | Architecture, invariants, and consequential tradeoffs |
-| Security | `opencode-go/deepseek-v4-pro` | high | Scoped trust-boundary assessment when enabled |
+| Architect | `openai/gpt-6-luna` | high | Architecture, invariants, and consequential tradeoffs |
+| Security | `openai/gpt-6-luna` | high | Scoped trust-boundary assessment when enabled |
 | UX | `openai/gpt-6.1-sol` | medium | Product-specific visual/interaction decisions and rendered contract review |
-| Tester | `opencode-go/muse-spark-1.3-contributor` | medium | Tests against defined criteria/design notes |
-| Developer | `opencode-go/muse-spark-1.3-contributor` | medium | Implement the defined architecture, behavior, and visual contract |
-| Reviewer | `opencode-go/deepseek-v4-flash` | medium | Independent correctness/contract review and follow-ups |
+| Tester | `opencode-go/gemini-4-argon-contributor` | medium | Tests against defined criteria/design notes |
+| Developer | `opencode-go/deepseek-v4-pro` | medium | Implement the defined architecture, behavior, and visual contract |
+| Reviewer | `opencode-go/deepseek-v4-pro` | high | Independent correctness/contract review and follow-ups |
 
-Only models found in the installer's available list can be selected automatically. The ordered, exact-ID fallback lists live in `src/installer/defaults.ts`:
+Only models discovered from connected providers in OpenCode can be selected automatically. The exact-ID rules live in `src/installer/defaults.ts`:
 
-- Lead prefers Sol 6.1, then Sol 6, then Terra at medium effort. Architect prefers Luna 6/xhigh, then Luna 5.6/xhigh; neither falls back to Astra. The Luna variants were verified through `opencode models openai --verbose`.
-- UX falls back only to `openai/gpt-6-sol`; no cheap thinking/execution model is silently selected for design. If neither Sol candidate is available, no UX default is set and the installer explains that unset means inheritance. Select a suitable model manually before enabling UX work.
-- OpenCode Go reasoning models have Zen equivalents as fallbacks. Implementation/tests prefer the flat-rate OpenCode Go Muse Contributor, then the OpenCode free Muse Contributor, then appropriate OpenCode reasoning models. The metered Meta API Muse Contributor is intentionally not a default.
-- Reviewer prefers plain DeepSeek V4 Flash through Go or Zen, then V4 Pro/medium if Flash is unavailable. Security prefers V4 Pro/high. Neither role nor Developer/Tester automatically falls back to OpenAI.
+- If a role's primary default model is available from the connected OpenCode providers, it is selected with the effort above; if not, the role is left unset so it inherits the active session/harness model (for example in a work environment where only Vertex models are connected).
+- If `openai/gpt-6.1-sol` is unavailable, no UX default is set and the installer explains that unset means inheritance. Select a suitable model manually before enabling UX work.
 - Astra and unlisted fast/premium variants are manual choices, never automatic matches. Exact matching avoids accidentally selecting a different variant merely because its name contains a preferred ID.
 
 **Apply these defaults to an existing install:** run setup, choose **Reset all to defaults** (or reset an individual agent), then continue through personal instructions and select **Install** in the final summary. Saved model choices are preserved during ordinary reconfiguration; changing the defaults does not silently replace them. A noninteractive reset uses `--defaults` from the target directory (see [Installation options](#installation-options)).
 
-If a role has no available listed candidate, first-time/defaults installation leaves it unset (inheriting the current opencode model); an interactive reset keeps its existing choice. Check the resulting selections before running a quality-sensitive stage.
+If a role's preferred model is not available in the connected providers, first-time/defaults installation and interactive reset leave it unset (inheriting the current opencode model). Check the resulting selections before running a quality-sensitive stage.
 
 Only enabled roles consume work for a given run; the allocation changes naturally with your confirmed pipeline. When cheap/bounded work reveals unresolved architecture or design decisions, route them to the enabled decision owner or ask for reconfiguration before implementation guesses.
 

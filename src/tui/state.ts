@@ -1,5 +1,5 @@
 import { deriveEffortLevels } from '../installer/model-catalog.js';
-import { resetAllToDefaults, resolveDefault } from '../installer/defaults.js';
+import { resetAgent, resetAllToDefaults, resolveDefault } from '../installer/defaults.js';
 import type { Harness } from '../installer/harness.js';
 import type { TeamConfig } from '../types.js';
 
@@ -382,9 +382,14 @@ export function reducer(state: SessionState, action: Action): SessionState {
         return { ...state, config: cleared, notice: `Reset ${action.name} to inherited model.`, settingsTouched: true, editedAgents: [...state.editedAgents, action.name] };
       }
       const config = { ...state.config };
-      const choice = resolveDefault(action.name, state.discovery.models);
-      if (choice) config[action.name] = choice;
-      return { ...state, config, notice: choice ? `Reset ${action.name} to ${choice.model}${choice.reasoningEffort ? ` @ ${choice.reasoningEffort}` : ''}.` : `No default available for ${action.name} — keeping current choice.`, settingsTouched: true };
+      const choice = resetAgent(config, action.name, state.discovery.models);
+      return {
+        ...state,
+        config,
+        notice: choice ? `Reset ${action.name} to ${choice.model}${choice.reasoningEffort ? ` @ ${choice.reasoningEffort}` : ''}.` : `Reset ${action.name} to inherited model.`,
+        settingsTouched: true,
+        editedAgents: choice ? state.editedAgents : [...state.editedAgents, action.name],
+      };
     }
     case 'RESET_ALL': {
       if (state.harness !== 'opencode') {
@@ -397,8 +402,9 @@ export function reducer(state: SessionState, action: Action): SessionState {
       return {
         ...state,
         config,
-        notice: reset.length > 0 ? `Reset to defaults: ${reset.join(', ')}.` : 'No defaults available for resolved models — nothing changed.',
+        notice: reset.length > 0 ? `Reset to defaults: ${reset.join(', ')}.` : 'Reset all to inherited models.',
         settingsTouched: true,
+        editedAgents: reset.length > 0 ? state.editedAgents : [...AGENT_ORDER],
       };
     }
     case 'SET_SEARCH':
