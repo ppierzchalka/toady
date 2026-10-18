@@ -49,12 +49,14 @@ export function readJevSettings(targetDir: string): JevConfig | null {
   const path = jevSettingsPath(targetDir);
   checkInstallFile(root, path);
   if (!existsSync(path)) return null;
-  const data: unknown = JSON.parse(readFileSync(path, 'utf8'));
-  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid Jev profile');
+  let data: unknown;
+  try { data = JSON.parse(readFileSync(path, 'utf8')); }
+  catch { return null; } // A corrupt optional profile must never block standard installation.
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
   const cfg = data as Record<string, unknown>;
   if (cfg.version !== 2 || typeof cfg.enabled !== 'boolean' || cfg.scope !== 'personal' ||
     typeof cfg.provider !== 'string' || !isJevProvider(cfg.provider) || cfg.model !== PROVIDERS[cfg.provider].model) {
-    throw new Error('Invalid Jev profile');
+    return null;
   }
   return cfg as unknown as JevConfig;
 }
