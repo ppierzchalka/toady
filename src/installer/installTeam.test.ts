@@ -186,8 +186,8 @@ describe('installTeam', () => {
     const skill = parseAgentFile(readFileSync(result.skillPath, 'utf8'));
     expect(skill.frontmatter.name).toBe('autonomous-implement');
     expect(skill.frontmatter.description).toEqual(expect.any(String));
-    expect(readdirSync(join(destination, '.opencode/skills')).sort()).toEqual(['architecture-assess', 'autonomous-implement', 'implement-task', 'interface-assess', 'plan', 'project-setup', 'refine', 'review-change', 'security-assess', 'slice', 'test-design', 'wayfinder']);
-    expect(result.skillPaths).toHaveLength(12);
+    expect(readdirSync(join(destination, '.opencode/skills')).sort()).toEqual(['architecture-assess', 'autonomous-implement', 'decision-gates', 'implement-task', 'interface-assess', 'plan', 'project-setup', 'refine', 'review-change', 'security-assess', 'slice', 'test-design', 'wayfinder']);
+    expect(result.skillPaths).toHaveLength(13);
     for (const path of result.skillPaths) {
       const content = readFileSync(path, 'utf8');
       expect(parseAgentFile(content).frontmatter.description).toEqual(expect.any(String));
