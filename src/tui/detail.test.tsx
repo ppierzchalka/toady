@@ -40,8 +40,7 @@ function mount(target: string, mutate: (initial: SessionState) => void, size: { 
     harness: 'opencode',
     config: {},
     overwrite: {},
-    toadyMode: false,
-    toadyRules: 'Prior rules.',
+        personalRules: 'Prior rules.',
     skillConflicts: [],
     vscodeKept: false,
   });
@@ -150,7 +149,7 @@ describe('full-detail pager (sentinel recovery)', () => {
     const target = workspace();
     writeFileSync(join(target, 'bad.md'), '<!-- spec-driven-scrum-team:toady:end -->');
     const { rendered, ready } = mount(target, (initial) => {
-      initial.step = 'persona';
+      initial.step = 'instructions';
       initial.rulesBrowser.open = true;
       initial.focusId = join(target, 'bad.md');
     }, { columns: 40, rows: 8 });
@@ -168,7 +167,7 @@ describe('full-detail pager (sentinel recovery)', () => {
   it('clears the draft-owned error on explicit Cancel and fits afterwards', async () => {
     const target = workspace();
     const { rendered, ready } = mount(target, (initial) => {
-      initial.step = 'persona';
+      initial.step = 'instructions';
       initial.focusId = 'rules-path';
     }, { columns: 40, rows: 8 });
     await ready();
@@ -189,7 +188,7 @@ describe('full-detail pager (sentinel recovery)', () => {
     const target = workspace();
     writeFileSync(join(target, 'good.md'), 'Good rules.');
     const { rendered, ready } = mount(target, (initial) => {
-      initial.step = 'persona';
+      initial.step = 'instructions';
       initial.focusId = 'rules-path';
     }, { columns: 99, rows: 24 });
     await ready();
@@ -355,7 +354,7 @@ describe('full-detail pager (sentinel recovery)', () => {
   it('reaches a middle error sentinel from the draft actions row', async () => {
     const target = workspace();
     const { rendered, ready } = mount(target, (initial) => {
-      initial.step = 'persona';
+      initial.step = 'instructions';
       initial.focusId = 'rules-path';
     }, { columns: 40, rows: 8 });
     await ready();
@@ -385,11 +384,11 @@ describe('full-detail pager (sentinel recovery)', () => {
   it('preserves draft-owned diagnostics through Quit/Continue exact restore', () => {
     const base = createInitialState({
       targetDir: '/repo', harness: 'opencode', config: {}, overwrite: {},
-      toadyMode: false, toadyRules: 'Prior rules.', skillConflicts: [], vscodeKept: false,
+      personalRules: 'Prior rules.', skillConflicts: [], vscodeKept: false,
     });
     const editing = {
       ...base,
-      step: 'persona' as const,
+      step: 'instructions' as const,
       draft: 'missing.md',
       draftFor: 'rules-path' as const,
       region: 1,
@@ -423,7 +422,7 @@ describe('full-detail pager (sentinel recovery)', () => {
       }
     };
     const { rendered, ready } = mount(target, (initial) => {
-      initial.step = 'persona';
+      initial.step = 'instructions';
       initial.focusId = 'rules-path';
     }, { columns: 40, rows: 8 });
     await ready();
