@@ -11,7 +11,7 @@ import { checkInstallPath } from '../installer/installPaths.js';
 import { HARNESS_LAYOUTS, isHarness, type Harness } from '../installer/harness.js';
 import { availableModels, detectConfigProviders, detectEnvProviders } from '../installer/model-catalog.js';
 import { migratePlannerConfig, resolveDefault } from '../installer/defaults.js';
-import { loadToadyRulesFile, personalSettingsPath, readToadySettings, toadyStatePath } from '../installer/toady.js';
+import { loadPersonalRulesFile, readPersonalInstructions } from '../installer/personalInstructions.js';
 import { planVscodeSettings } from '../installer/vscodeSettings.js';
 import { createInitialState } from '../tui/state.js';
 import { AGENT_ORDER } from '../tui/state.js';
@@ -76,10 +76,9 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
   const build = readBuildInfo(packageRoot);
   const harness = args.harnessName && isHarness(args.harnessName) ? args.harnessName : 'opencode';
 
-  const saved = readToadySettings(target, harness);
-  if (args.rulesFlag) saved.projectRules = loadToadyRulesFile(resolve(args.rulesFlag));
-  if (args.clearRules) saved.projectRules = '';
-  if (args.toady !== undefined) saved.enabled = args.toady;
+  let savedRules = readPersonalInstructions(target, harness);
+  if (args.rulesFlag) savedRules = loadPersonalRulesFile(resolve(args.rulesFlag));
+  if (args.clearRules) savedRules = '';
 
   if (args.defaults) {
     const models = defaultsModels(harness);
@@ -99,12 +98,9 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
     if (harness === 'opencode' && !config.ux?.model) {
       console.log('No recommended Sol model is available for UX. An unset UX model inherits the current model; select a suitable model explicitly before running design work.');
     }
-    const configurePersona =
-      saved.enabled || saved.projectRules.trim().length > 0 || args.clearRules ||
-      existsSync(join(target, toadyStatePath(harness))) || existsSync(personalSettingsPath(harness)) || args.toady === false;
     const plan = {
       options: { definitionsDir, skillDir, config, targetDir: target, overwrite, harness, replaceSkills: args.replaceSkills },
-      persona: configurePersona ? { enabled: saved.enabled, rules: saved.projectRules } : undefined,
+      instructions: savedRules,
     };
     const conflicts = conflictingSkills(plan.options);
     if (conflicts.length && !args.replaceSkills) {
@@ -141,8 +137,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
     harness,
     config: existing,
     overwrite: {},
-    toadyMode: saved.enabled,
-    toadyRules: saved.projectRules,
+    personalRules: savedRules,
     skillConflicts: conflictingSkills(preflightOptions),
     vscodeKept: planVscodeSettings(target).body === null,
   });
@@ -150,8 +145,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
 
   // Read-only refresh for interactive target/harness changes: each target
   // owns its saved model choices, conflicts and editor status. Personal
-  // Toady/rules settings stay user/harness-scoped and are never reloaded
-  // per target. Throws an actionable message so the picker can recover with
+  // instructions stay user/harness-scoped and are never reloaded per target. Throws an actionable message so the picker can recover with
   // the committed target untouched; never writes.
   const loadRefresh = (dir: string, next: Harness) => {
     let config: TeamConfig;
@@ -177,20 +171,10 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
     onInstall: (state) => {
       const installTarget = state.targetDir;
       checkTargetReady(installTarget);
-      // Persona profiles are per harness: untouched controls follow the saved
-      // profile of the finally selected harness instead of the entry harness.
-      // Saved persona state is user-scoped; the legacy repo fallback reads
-      // the confirmed target, never a stale invocation directory.
-      let toadyMode = state.toadyMode;
-      let toadyRules = state.toadyRules;
-      if (!state.personaTouched) {
-        const final = readToadySettings(installTarget, state.harness);
-        toadyMode = final.enabled;
-        toadyRules = final.projectRules;
-      }
-      const configurePersona =
-        toadyMode || toadyRules.trim().length > 0 ||
-        existsSync(join(installTarget, toadyStatePath(state.harness))) || existsSync(personalSettingsPath(state.harness));
+      // Resolve personal instructions for the finally selected harness.
+      const rules = state.rulesTouched
+        ? state.personalRules
+        : readPersonalInstructions(installTarget, state.harness);
       const plan = {
         options: {
           definitionsDir,
@@ -201,7 +185,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
           harness: state.harness,
           replaceSkills: args.replaceSkills || state.adoptSkills,
         },
-        persona: configurePersona ? { enabled: toadyMode, rules: toadyRules } : undefined,
+        instructions: rules,
       };
       const conflicts = planSkillConflicts(plan);
       if (conflicts.length && !plan.options.replaceSkills) {
