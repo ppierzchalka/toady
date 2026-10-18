@@ -50,7 +50,7 @@ export function instructionsFocusIds(state: SessionState, entries: BrowserEntry[
   if (state.rulesBrowser.open) {
     return [...entries.map((entry) => entry.id), '__hidden__', '__cancel__'];
   }
-  return ['rules-browse', 'rules-path', 'rules-clear', '__next__', '__back__'];
+  return ['rules-browse', 'rules-path', 'rules-clear', '__next__', '__back__', 'jev'];
 }
 
 export function instructionsBrowserItems(entries: BrowserEntry[], showHidden: boolean): MenuItem[] {
@@ -68,6 +68,11 @@ export function instructionsItems(state: SessionState): MenuItem[] {
     { id: 'rules-clear', label: 'Clear additional rules', hint: 'leave existing repository conventions unchanged' },
     { id: '__next__', label: 'Next: review and install' },
     { id: '__back__', label: 'Back to agents and models' },
+    { id: 'jev', label: 'Jev decision gates (OpenCode Go only)',
+      hint: state.harness !== 'opencode' ? 'unavailable for this harness' :
+        !state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'unavailable; no authenticated Go Jev model detected' :
+        state.jevRequested ? 'requested; capability tested before install' : 'off (optional)',
+      state: state.jevRequested ? 'checked' : 'unchecked' },
   ];
 }
 
@@ -85,6 +90,7 @@ export function activateInstructions(state: SessionState, id: string, entries: B
     if (entry.isDirectory) return { type: 'BROWSER_NAV', dir: entry.id };
     return commitBrowserFile(entry.id);
   }
+  if (id === 'jev') return { type: 'TOGGLE_JEV' };
   if (id === 'rules-browse') return { type: 'OPEN_RULES_BROWSER' };
   if (id === 'rules-path') return { type: 'SET_DRAFT', for: 'rules-path', value: '' };
   if (id === 'rules-clear') return { type: 'CLEAR_RULES' };
@@ -117,7 +123,7 @@ export function instructionsShortcuts(state: SessionState): string[] {
     if (state.region === 1) return ['↑↓ choose action', 'Enter activate', 'Tab back to input', 'Esc quit dialog'];
     return ['Type or paste a path', 'Enter load', 'Tab actions (Load/Cancel)', 'Esc quit dialog (draft kept)'];
   }
-  return ['↑↓ navigate', 'Enter activate', 'Esc quit'];
+  return ['↑↓ navigate', 'Enter activate/toggle', 'Esc quit'];
 }
 
 export const INSTRUCTIONS_NOTE = 'Personal instructions are stored outside the repository in your user configuration and apply across projects for this harness.';
