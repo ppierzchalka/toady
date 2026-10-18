@@ -7,7 +7,7 @@ import type { TeamConfig } from '../types.js';
 export const AGENT_ORDER = ['analyst', 'lead', 'architect', 'security', 'ux', 'tester', 'developer', 'reviewer'] as const;
 export type AgentName = (typeof AGENT_ORDER)[number];
 
-export type Step = 'directory' | 'agents' | 'persona' | 'review';
+export type Step = 'directory' | 'agents' | 'instructions' | 'review';
 
 export type DiscoveryStatus = 'loading' | 'ready' | 'unavailable';
 
@@ -39,7 +39,7 @@ export interface TargetBrowserState {
   error: string | null;
 }
 
-/** Refresh payload loaded from a newly chosen target. Personal Toady/rules
+/** Refresh payload loaded from a newly chosen target. Personal instructions
  * settings are user/harness-scoped and deliberately absent here. */
 export interface TargetPending {
   dir: string;
@@ -100,10 +100,9 @@ export interface SessionState {
   /** Cursor offset (chars) inside the active draft. */
   cursor: number;
   editorMode: 'list' | 'custom' | 'path';
-  toadyMode: boolean;
-  toadyRules: string;
-  /** True once the user edits persona controls; used to merge saved profiles. */
-  personaTouched: boolean;
+  personalRules: string;
+  /** True once personal instructions are edited; used to resolve saved harness settings. */
+  rulesTouched: boolean;
   rulesBrowser: RulesBrowserState;
   targetBrowser: TargetBrowserState;
   /** Pending target switch awaiting explicit discard-consent; null otherwise. */
@@ -129,8 +128,7 @@ export interface InitialOptions {
   harness: Harness;
   config: TeamConfig;
   overwrite: Record<string, boolean>;
-  toadyMode: boolean;
-  toadyRules: string;
+  personalRules: string;
   skillConflicts: string[];
   vscodeKept: boolean;
 }
@@ -154,9 +152,8 @@ export function createInitialState(options: InitialOptions): SessionState {
     draftFor: null,
     cursor: 0,
     editorMode: 'list',
-    toadyMode: options.toadyMode,
-    toadyRules: options.toadyRules,
-    personaTouched: false,
+    personalRules: options.personalRules,
+    rulesTouched: false,
     rulesBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
     targetBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
     targetPending: null,
@@ -194,7 +191,6 @@ export type Action =
   | { type: 'SET_DRAFT'; for: DraftKind; value: string; cursor?: number }
   | { type: 'SET_CURSOR'; cursor: number }
   | { type: 'CLEAR_DRAFT' }
-  | { type: 'SET_TOADY'; enabled: boolean }
   | { type: 'SET_RULES'; rules: string }
   | { type: 'CLEAR_RULES' }
   | { type: 'OPEN_RULES_BROWSER' }
@@ -290,7 +286,7 @@ export function modelChoicesFor(state: SessionState, name: string): { provider: 
 }
 
 /** Apply a loaded target refresh atomically: new target owns config,
- * conflicts and editor status; user-scoped persona is untouched. The session
+ * conflicts and editor status; user-scoped instructions are untouched. The session
  * edit baseline resets, so a later switch re-arms discard-consent. */
 function applyTarget(
   state: SessionState,
@@ -333,7 +329,7 @@ function withDefaults(state: SessionState): SessionState {
 export function reducer(state: SessionState, action: Action): SessionState {
   switch (action.type) {
     case 'NAV':
-      return clearScreenTransient(state, action.to, action.to === 'directory' ? 'confirm' : action.to === 'agents' ? state.harness : action.to === 'persona' ? 'toady' : 'install');
+      return clearScreenTransient(state, action.to, action.to === 'directory' ? 'confirm' : action.to === 'agents' ? state.harness : action.to === 'instructions' ? 'rules-browse' : 'install');
     case 'SET_HARNESS':
       // Retain committed model choices across harness switches; never wipe.
       return withDefaults({ ...state, harness: action.harness, focusId: action.harness, notice: null, error: null });
@@ -418,12 +414,10 @@ export function reducer(state: SessionState, action: Action): SessionState {
       // Local cancel drops the draft and its draft-owned validation error;
       // unrelated errors never coexist with an active draft.
       return { ...state, draft: '', draftFor: null, cursor: 0, editorMode: 'list', error: null };
-    case 'SET_TOADY':
-      return { ...state, toadyMode: action.enabled, personaTouched: true };
     case 'SET_RULES':
-      return { ...state, toadyRules: action.rules, personaTouched: true, rulesBrowser: { ...state.rulesBrowser, open: false, error: null }, draft: '', draftFor: null, cursor: 0, error: null };
+      return { ...state, personalRules: action.rules, rulesTouched: true, rulesBrowser: { ...state.rulesBrowser, open: false, error: null }, draft: '', draftFor: null, cursor: 0, error: null };
     case 'CLEAR_RULES':
-      return { ...state, toadyRules: '', personaTouched: true };
+      return { ...state, personalRules: '', rulesTouched: true };
     case 'OPEN_RULES_BROWSER':
       return { ...state, focusId: '..', scrollTop: 0, region: 0, rulesBrowser: { ...state.rulesBrowser, open: true, dir: state.targetDir, focusId: '..', scrollTop: 0, error: null } };
     case 'CLOSE_RULES_BROWSER':

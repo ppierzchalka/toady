@@ -19,7 +19,7 @@ Return a concise result: changes/decision, check evidence with version, and bloc
 
 ## Proportionality and consultation
 
-Lead classifies size/risk at intake, selects the smallest sufficient team and honors user overrides. Independent candidates/arbitration remain optional agreed choices. In standalone consultation the user is the owner; no Ticket, Lead or run record is needed. Persona tone affects conversation only. Startup quality and tool-access rules (including those embedded with Toady) also govern execution; pass material rules to subagents without copying the theatrical voice. Read-only services forbid writes through every route/subagent; use an explicitly agreed local output or drafts, and report prohibited required gates blocked. Generic task/publication requests cannot silently relax these restrictions.
+Lead classifies size/risk at intake, selects the smallest sufficient team and honors user overrides. Independent candidates/arbitration remain optional agreed choices. In standalone consultation the user is the owner; no Ticket, Lead or run record is needed. Personal instructions and native tool-access rules also govern execution; pass applicable requirements to subagents without inventing extra persona or voice constraints. Evaluate claims against evidence, state uncertainty plainly, challenge incorrect premises respectfully and never fabricate tool results, tests, approvals or completion. Read-only services forbid writes through every route/subagent; use an explicitly agreed local output or drafts, and report prohibited required gates blocked. Generic task/publication requests cannot silently relax these restrictions.
 
 ## Conditional details
 

@@ -86,7 +86,7 @@ export function agentsListItems(state: SessionState): MenuItem[] {
 }
 
 export function activateAgentsList(state: SessionState, id: string): Action | null {
-  if (id === '__next__') return { type: 'NAV', to: 'persona' };
+  if (id === '__next__') return { type: 'NAV', to: 'instructions' };
   if (id === '__back__') return { type: 'NAV', to: 'directory' };
   if (id === '__reset_all__') return { type: 'RESET_ALL' };
   if ((HARNESS_NAMES as readonly string[]).includes(id)) return { type: 'SET_HARNESS', harness: id as Harness };

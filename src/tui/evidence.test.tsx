@@ -40,8 +40,7 @@ async function capture(name: string, size: { columns: number; rows: number }, dr
       harness: 'opencode',
       config: {},
       overwrite: {},
-      toadyMode: false,
-      toadyRules: '',
+            personalRules: '',
       skillConflicts: ['wayfinder'],
       vscodeKept: false,
     });
@@ -107,7 +106,7 @@ describe('rendered evidence matrix', () => {
     const root = workspace();
     const target = join(root, 'notice-path-start', ...Array(25).fill('temp-root-segment'), 'notice-target-end');
     mkdirSync(target, { recursive: true });
-    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, toadyMode: false, toadyRules: '', skillConflicts: [], vscodeKept: true });
+    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, personalRules: '', skillConflicts: [], vscodeKept: true });
     initial.discovery = { status: 'ready', models: [], detail: '' };
     let result: AppResult | null = null;
     const rendered = renderTree(<InstallerApp initial={initial} onDone={(value) => { result = value; }} />, { columns, rows });
@@ -248,14 +247,13 @@ describe('rendered evidence matrix', () => {
 
     // Rules browser with long paths plus a loader error, staying recoverable.
     const browser = await capture(
-      'persona-browser-99x24',
+      'instructions-browser-99x24',
       { columns: 99, rows: 24 },
       async (rendered) => {
         await rendered.send(KEYS.enter);
         await rendered.send(KEYS.end);
         await rendered.send(KEYS.enter);
-        await rendered.send(KEYS.down);
-        await rendered.send(KEYS.enter);
+        await rendered.send(KEYS.enter); // Browse is now the first instructions row
         await rendered.send(KEYS.down);
         await rendered.send(KEYS.down);
         await rendered.send(KEYS.enter);
@@ -293,7 +291,7 @@ describe('rendered evidence matrix', () => {
         await rendered.send(KEYS.enter);
         await rendered.send(KEYS.end);
         await rendered.send(KEYS.enter);
-        for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+        for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
         await rendered.send(KEYS.enter);
         // Adopt the conflicting skill, then install: progress shows in-shell.
         await rendered.send(KEYS.up);
@@ -310,7 +308,7 @@ describe('rendered evidence matrix', () => {
         return {
           target: state.targetDir,
           team: { removed: [], legacyPreserved: [], written: [], preserved: [], configPath: '', gitignorePath: '', skillPath: '', skillPaths: [] },
-          personaPaths: [],
+          instructionsPaths: [],
           vscode: { path: '', status: 'kept' },
         };
       },
@@ -327,7 +325,7 @@ describe('rendered evidence matrix', () => {
           await rendered.send(KEYS.enter);
           await rendered.send(KEYS.end);
           await rendered.send(KEYS.enter);
-          for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+          for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
           await rendered.send(KEYS.enter);
           await rendered.send(KEYS.end);
         },
@@ -342,7 +340,7 @@ describe('rendered evidence matrix', () => {
     const root = workspace();
     const target = join(root, 'long-target-start-sentinel', 'parent-segment-that-exceeds-the-summary-width'.repeat(2), 'long-target-end-sentinel');
     mkdirSync(target, { recursive: true });
-    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, toadyMode: false, toadyRules: '', skillConflicts: [], vscodeKept: true });
+    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, personalRules: '', skillConflicts: [], vscodeKept: true });
     initial.discovery = { status: 'ready', models: [], detail: '' };
     let installedTarget: string | null = null;
     const rendered = renderTree(React.createElement(InstallerApp, {
@@ -390,7 +388,7 @@ describe('rendered evidence matrix', () => {
     expect(stripAnsi(rendered.frame())).toContain('Step 2 of 4');
     await rendered.send(KEYS.end);
     await rendered.send(KEYS.enter);
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter);
     await rendered.send(KEYS.enter);
     await rendered.waitFor(() => installedTarget !== null, 'exact long target passed to install');

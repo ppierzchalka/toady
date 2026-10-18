@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import { dirname, join, resolve } from 'node:path';
 import { lstatSync, readdirSync } from 'node:fs';
-import { loadToadyRulesFile } from '../../installer/toady.js';
+import { loadPersonalRulesFile } from '../../installer/personalInstructions.js';
 import type { Action, SessionState } from '../state.js';
 import type { MenuItem } from '../components/controls.js';
 import { EditActions, MenuList, TextField } from '../components/controls.js';
@@ -46,14 +46,14 @@ export function browserEntries(dir: string, showHidden: boolean): { entries: Bro
   return { entries: [{ id: '..', label: '.. (parent)', isDirectory: true }, ...dirs, ...files], error: null };
 }
 
-export function personaFocusIds(state: SessionState, entries: BrowserEntry[]): string[] {
+export function instructionsFocusIds(state: SessionState, entries: BrowserEntry[]): string[] {
   if (state.rulesBrowser.open) {
     return [...entries.map((entry) => entry.id), '__hidden__', '__cancel__'];
   }
-  return ['toady', 'rules-browse', 'rules-path', 'rules-clear', '__next__', '__back__'];
+  return ['rules-browse', 'rules-path', 'rules-clear', '__next__', '__back__'];
 }
 
-export function personaBrowserItems(entries: BrowserEntry[], showHidden: boolean): MenuItem[] {
+export function instructionsBrowserItems(entries: BrowserEntry[], showHidden: boolean): MenuItem[] {
   return [
     ...entries.map((entry) => ({ id: entry.id, label: entry.label, hint: entry.isDirectory ? undefined : 'Markdown/text rules file' })),
     { id: '__hidden__', label: showHidden ? 'Hide hidden entries' : 'Show hidden entries' },
@@ -61,19 +61,18 @@ export function personaBrowserItems(entries: BrowserEntry[], showHidden: boolean
   ];
 }
 
-export function personaItems(state: SessionState): MenuItem[] {
+export function instructionsItems(state: SessionState): MenuItem[] {
   return [
-    { id: 'toady', label: 'Toady voice', hint: state.toadyMode ? 'on — cartoon henchman voice' : 'off', state: state.toadyMode ? 'checked' : 'unchecked' },
     { id: 'rules-browse', label: 'Browse for a rules file', hint: 'navigate folders; Markdown/text files' },
     { id: 'rules-path', label: 'Enter a rules file path', hint: 'relative to the installation directory, or absolute' },
-    { id: 'rules-clear', label: 'Clear additional rules', hint: 'leave Toady voice and existing repo conventions unchanged' },
+    { id: 'rules-clear', label: 'Clear additional rules', hint: 'leave existing repository conventions unchanged' },
     { id: '__next__', label: 'Next: review and install' },
     { id: '__back__', label: 'Back to agents and models' },
   ];
 }
 
-/** Activate (Enter) on the persona menu or an open browser row. */
-export function activatePersona(state: SessionState, id: string, entries: BrowserEntry[]): Action | null {
+/** Activate (Enter) on the instructions menu or an open browser row. */
+export function activateInstructions(state: SessionState, id: string, entries: BrowserEntry[]): Action | null {
   if (state.rulesBrowser.open) {
     if (id === '__cancel__') return { type: 'CLOSE_RULES_BROWSER' };
     if (id === '__hidden__') return { type: 'BROWSER_HIDDEN', show: !state.rulesBrowser.showHidden };
@@ -86,7 +85,6 @@ export function activatePersona(state: SessionState, id: string, entries: Browse
     if (entry.isDirectory) return { type: 'BROWSER_NAV', dir: entry.id };
     return commitBrowserFile(entry.id);
   }
-  if (id === 'toady') return { type: 'SET_TOADY', enabled: !state.toadyMode };
   if (id === 'rules-browse') return { type: 'OPEN_RULES_BROWSER' };
   if (id === 'rules-path') return { type: 'SET_DRAFT', for: 'rules-path', value: '' };
   if (id === 'rules-clear') return { type: 'CLEAR_RULES' };
@@ -95,15 +93,10 @@ export function activatePersona(state: SessionState, id: string, entries: Browse
   return null;
 }
 
-export function togglePersona(state: SessionState, id: string): Action | null {
-  if (!state.rulesBrowser.open && id === 'toady') return { type: 'SET_TOADY', enabled: !state.toadyMode };
-  return null;
-}
-
 /** Loader-validated commit of a browser file; failures stay in the browser. */
 export function commitBrowserFile(path: string): Action {
   try {
-    const rules = loadToadyRulesFile(path);
+    const rules = loadPersonalRulesFile(path);
     return { type: 'SET_RULES', rules };
   } catch (error) {
     return { type: 'BROWSER_ERROR', error: error instanceof Error ? error.message : 'Cannot load rules file' };
@@ -114,23 +107,23 @@ export function commitBrowserFile(path: string): Action {
 export function commitRulesPath(state: SessionState): Action {
   const raw = state.draft.trim();
   if (!raw) return { type: 'CLEAR_DRAFT' };
-  const rules = loadToadyRulesFile(resolve(state.targetDir, raw));
+  const rules = loadPersonalRulesFile(resolve(state.targetDir, raw));
   return { type: 'SET_RULES', rules };
 }
 
-export function personaShortcuts(state: SessionState): string[] {
+export function instructionsShortcuts(state: SessionState): string[] {
   if (state.rulesBrowser.open) return ['↑↓ navigate', 'Enter open/select', 'Enter on Show hidden toggles dotfiles', 'Esc cancel (keeps prior rules)'];
   if (state.draftFor === 'rules-path') {
     if (state.region === 1) return ['↑↓ choose action', 'Enter activate', 'Tab back to input', 'Esc quit dialog'];
     return ['Type or paste a path', 'Enter load', 'Tab actions (Load/Cancel)', 'Esc quit dialog (draft kept)'];
   }
-  return ['↑↓ navigate', 'Enter toggles Toady voice / activate', 'Esc quit'];
+  return ['↑↓ navigate', 'Enter activate', 'Esc quit'];
 }
 
-export const PERSONA_NOTE = 'Toady and additional rules are personal: stored outside the repo in your user configuration and applied across projects for this harness.';
+export const INSTRUCTIONS_NOTE = 'Personal instructions are stored outside the repository in your user configuration and apply across projects for this harness.';
 export const BROWSER_EMPTY = 'Empty folder — navigate elsewhere or cancel; prior rules are kept.';
 
-export function personaFixedRows(state: SessionState, width: number, compact: boolean, minimal = false, hintMode: 'all' | 'focused' | 'none' = compact ? 'focused' : 'all', editDetails = false): number {
+export function instructionsFixedRows(state: SessionState, width: number, compact: boolean, minimal = false, hintMode: 'all' | 'focused' | 'none' = compact ? 'focused' : 'all', editDetails = false): number {
   if (state.rulesBrowser.open) {
     const { entries, error } = browserEntries(state.rulesBrowser.dir, state.rulesBrowser.showHidden);
     const fsError = state.rulesBrowser.error ?? error;
@@ -143,22 +136,22 @@ export function personaFixedRows(state: SessionState, width: number, compact: bo
   // Minimum band hides the advisory rules line; the rows carry the state.
   const rules = minimal ? 0 : 1;
   if (state.draftFor === 'rules-path') {
-    const label = wrapLines(personaPathLabel(minimal, state.targetDir), width).length;
+    const label = wrapLines(instructionsPathLabel(minimal, state.targetDir), width).length;
     const actionCount = state.region === 1 ? (editDetails ? 3 : 2) : 0;
     const actions = actionCount === 0 ? 0 : (compact ? (hintMode === 'none' ? actionCount : actionCount + 1) : 1 + actionCount + 1);
     if (compact) return rules + label + 1 + actions;
-    return 1 + wrapLines(PERSONA_NOTE, width).length + rules + 1 + label + 1 + actions;
+    return 1 + wrapLines(INSTRUCTIONS_NOTE, width).length + rules + 1 + label + 1 + actions;
   }
   if (compact) return rules;
-  return 1 + wrapLines(PERSONA_NOTE, width).length + rules + 1;
+  return 1 + wrapLines(INSTRUCTIONS_NOTE, width).length + rules + 1;
 }
 
-export function personaPathLabel(minimal: boolean, targetDir: string): string {
+export function instructionsPathLabel(minimal: boolean, targetDir: string): string {
   if (minimal) return 'Rules file path:';
   return `Path to rules file (relative to ${targetDir}, or absolute; no credentials/secrets):`;
 }
 
-export function PersonaScreen(options: { state: SessionState; width: number; listHeight: number; compact: boolean; hintMode?: 'all' | 'focused' | 'none'; minimal?: boolean; editDetails?: boolean }): React.JSX.Element {
+export function InstructionsScreen(options: { state: SessionState; width: number; listHeight: number; compact: boolean; hintMode?: 'all' | 'focused' | 'none'; minimal?: boolean; editDetails?: boolean }): React.JSX.Element {
   const { state, width, listHeight, compact, hintMode, minimal = false , editDetails = false } = options;
   const editingPath = state.draftFor === 'rules-path';
   if (state.rulesBrowser.open) {
@@ -166,7 +159,7 @@ export function PersonaScreen(options: { state: SessionState; width: number; lis
     // Browser diagnostics render once at App level (single error source);
     // the empty-folder note still keys off the same local error state.
     const browserFsError = state.rulesBrowser.error ?? error;
-    const items: MenuItem[] = personaBrowserItems(entries, state.rulesBrowser.showHidden);
+    const items: MenuItem[] = instructionsBrowserItems(entries, state.rulesBrowser.showHidden);
     return (
       <Box flexDirection="column">
         {!compact && <Text color={palette.cream} bold>Select additional rules (.md or .txt)</Text>}
@@ -182,12 +175,12 @@ export function PersonaScreen(options: { state: SessionState; width: number; lis
     <Box flexDirection="column">
       {!compact && <Text color={palette.cream} bold>Personal instructions</Text>}
       {!compact && (
-        <Text color={palette.parchment} wrap="wrap">{PERSONA_NOTE}</Text>
+        <Text color={palette.parchment} wrap="wrap">{INSTRUCTIONS_NOTE}</Text>
       )}
-      {!minimal && <Text color={palette.parchment}>{`Current rules: ${state.toadyRules.trim() ? 'loaded' : 'none — independent of Toady voice'}`}</Text>}
+      {!minimal && <Text color={palette.parchment}>{`Current rules: ${state.personalRules.trim() ? 'loaded' : 'none'}`}</Text>}
       {editingPath && (
         <Box marginTop={compact ? 0 : 1} flexDirection="column">
-          <Text color={palette.gold} wrap="wrap">{personaPathLabel(minimal, state.targetDir)}</Text>
+          <Text color={palette.gold} wrap="wrap">{instructionsPathLabel(minimal, state.targetDir)}</Text>
           <TextField value={state.draft} cursor={state.cursor} focused={state.region === 0} width={width} />
           {state.region === 1 && (
             <Box marginTop={compact ? 0 : 1}>
@@ -198,7 +191,7 @@ export function PersonaScreen(options: { state: SessionState; width: number; lis
       )}
       {!editingPath && (
         <Box marginTop={compact ? 0 : 1}>
-          <MenuList items={personaItems(state)} focusedId={state.focusId} viewportHeight={listHeight} width={width} compact={compact} hintMode={hintMode} />
+          <MenuList items={instructionsItems(state)} focusedId={state.focusId} viewportHeight={listHeight} width={width} compact={compact} hintMode={hintMode} />
         </Box>
       )}
     </Box>

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { installTeam, preflightTeam } from './installTeam.js';
 import { checkInstallPath } from './installPaths.js';
-import { installToady } from './toady.js';
+import { installPersonalInstructions } from './personalInstructions.js';
 import { HARNESS_LAYOUTS, HARNESS_NAMES } from './harness.js';
 
 const source = fileURLToPath(new URL('../../', import.meta.url));
@@ -66,11 +66,11 @@ describe('install preflight', () => {
     installTeam(options); // own marker permits ordinary reinstallation
     expect(readFileSync(path, 'utf8')).toContain('name: wayfinder');
   });
-  it('validates persona without mutation before team installation', () => {
+  it('validates personal instructions without mutation before team installation', () => {
     const { targetDir, options } = fixture();
     writeFileSync(join(targetDir, 'opencode.json'), '{broken');
     preflightTeam(options);
-    expect(() => installToady(targetDir, true, 'opencode', true)).toThrow('Invalid OpenCode');
+    expect(() => installPersonalInstructions(targetDir, 'opencode', true, 'No any.')).toThrow('Invalid OpenCode');
     expect(existsSync(join(targetDir, '.opencode'))).toBe(false);
   });
   it('exports explicit native model selections alongside portable roles', () => {
@@ -89,20 +89,20 @@ describe('install preflight', () => {
     expect(() => installTeam({ ...options, replaceSkills: true })).toThrow();
     expect(existsSync(join(targetDir, '.opencode/agents'))).toBe(false);
   });
-  it('rejects a directory in place of a persona before runtime config writes', () => {
+  it('rejects a directory in place of a legacy generated instructions file before runtime config writes', () => {
     const { targetDir, options } = fixture();
     mkdirSync(join(targetDir, '.opencode/personas/toady.md'), { recursive: true });
     preflightTeam(options);
-    expect(() => installToady(targetDir, true, 'opencode', true)).toThrow('regular file');
+    expect(() => installPersonalInstructions(targetDir, 'opencode', true, 'No any.')).toThrow('regular file');
     expect(existsSync(join(targetDir, 'opencode.json'))).toBe(false);
     expect(existsSync(join(targetDir, '.opencode/agents'))).toBe(false);
   });
-  it('CLI validates late team destinations before enabling persona', () => {
+  it('CLI validates late team destinations before personal instruction migration', () => {
     const { targetDir } = fixture();
     const root = mkdtempSync(join(tmpdir(), 'team-cli-home-')); roots.push(root);
     mkdirSync(join(targetDir, '.agents/skills/autonomous-implement/references/roles/runtime.json'), { recursive: true });
     expect(() => execFileSync(process.execPath, ['--import', 'tsx', join(source, 'src/cli.ts'),
-      '--harness=codex', '--defaults', '--replace-skills', '--toady'],
+      '--harness=codex', '--defaults', '--replace-skills'],
       {
         stdio: 'pipe',
         cwd: targetDir,

@@ -28,8 +28,7 @@ async function mountAt(target: string, columns: number, rows: number, mutate: (i
     harness: 'opencode',
     config: {},
     overwrite: {},
-    toadyMode: false,
-    toadyRules: 'Prior rules.',
+        personalRules: 'Prior rules.',
     skillConflicts: [],
     vscodeKept: false,
   });
@@ -59,7 +58,7 @@ describe('40x8 stress viewports', () => {
     const target = workspace();
     writeFileSync(join(target, 'bad.md'), '<!-- spec-driven-scrum-team:toady:end -->');
     const rendered = await mountAt(target, 40, 8, (initial) => {
-      initial.step = 'persona';
+      initial.step = 'instructions';
       initial.rulesBrowser.open = true;
       initial.focusId = join(target, 'bad.md');
     });
@@ -79,7 +78,7 @@ describe('40x8 stress viewports', () => {
   it('keeps direct-path failures usable at 40x8', async () => {
     const target = workspace();
     const rendered = await mountAt(target, 40, 8, (initial) => {
-      initial.step = 'persona';
+      initial.step = 'instructions';
       initial.focusId = 'rules-path';
     });
     await rendered.send(KEYS.enter); // open path draft
@@ -130,7 +129,7 @@ describe('40x8 stress viewports', () => {
       return {
         target,
         team: { removed: [], legacyPreserved: [], written: [], preserved: [], configPath: '', gitignorePath: '', skillPath: '', skillPaths: [] },
-        personaPaths: [],
+        instructionsPaths: [],
         vscode: { path: '', status: 'kept' },
       };
     });
@@ -142,8 +141,8 @@ describe('40x8 stress viewports', () => {
     await rendered.send(KEYS.esc); // clear search, back to list region
     await rendered.send(KEYS.esc); // back to the role list
     await rendered.send(KEYS.end);
-    await rendered.send(KEYS.enter); // persona
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    await rendered.send(KEYS.enter); // instructions
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter); // review
     await rendered.send(KEYS.enter); // install
     await rendered.waitFor(() => seenBox.state !== null, 'writer received committed model');

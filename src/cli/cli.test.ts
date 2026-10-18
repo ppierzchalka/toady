@@ -10,13 +10,12 @@ import { readBuildInfo } from './buildInfo.js';
 
 describe('single-cwd CLI arguments', () => {
   it('parses the supported flags', () => {
-    expect(parseArgs(['--defaults', '--harness=codex', '--toady', '--replace-skills'])).toMatchObject({
+    expect(parseArgs(['--defaults', '--harness=codex', '--replace-skills'])).toMatchObject({
       defaults: true,
       harnessName: 'codex',
-      toady: true,
       replaceSkills: true,
     });
-    expect(parseArgs(['-d', '--no-toady', '--clear-toady-rules'])).toMatchObject({ defaults: true, toady: false, clearRules: true });
+    expect(parseArgs(['-d', '--clear-additional-rules'])).toMatchObject({ defaults: true, clearRules: true });
     expect(parseArgs(['--additional-rules=r.md'])).toMatchObject({ rulesFlag: 'r.md' });
     expect(parseArgs([])).toMatchObject({ defaults: false, help: false });
   });
@@ -32,8 +31,8 @@ describe('single-cwd CLI arguments', () => {
 
   it('rejects malformed and conflicting flags before any writes', () => {
     expect(() => parseArgs(['--bogus'])).toThrow(/Unknown flag/);
-    expect(() => parseArgs(['--toady', '--no-toady'])).toThrow(/Choose --toady or --no-toady/);
-    expect(() => parseArgs(['--additional-rules=a', '--toady-rules=b'])).toThrow(/one additional rules file/i);
+    expect(() => parseArgs(['--toady'])).toThrow(/Unknown flag/);
+    expect(() => parseArgs(['--additional-rules=a', '--additional-rules=b'])).toThrow(/one additional rules file/i);
     expect(() => parseArgs(['--additional-rules=a', '--clear-additional-rules'])).toThrow(/or clear rules/);
     expect(() => parseArgs(['--harness=a', '--harness=b'])).toThrow(/single --harness/);
   });

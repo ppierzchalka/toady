@@ -20,7 +20,7 @@ export interface TargetEntry {
 
 /** Refresh payload loaded from a newly chosen target (config, conflicts,
  * editor status). Personal settings stay user/harness-scoped by construction:
- * no persona field is carried here. */
+ * no personal instruction field is carried here. */
 export interface TargetRefreshData {
   config: TeamConfig;
   skillConflicts: string[];

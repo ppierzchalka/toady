@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import { resolve } from 'node:path';
-import { loadToadyRulesFile } from '../../installer/toady.js';
+import { loadPersonalRulesFile } from '../../installer/personalInstructions.js';
 import type { Action, SessionState } from '../state.js';
 import { HARNESS_LAYOUTS } from '../../installer/harness.js';
 import { wrapLines } from '../layout.js';
@@ -19,8 +19,7 @@ export function scopeLines(state: SessionState): { project: string[]; personal: 
     `.vscode/settings.json — Quick Open pass-through (${state.vscodeKept ? 'already configured, kept' : 'will be added'})`,
   ];
   const personal = [
-    'Private persona profile (Toady voice plus additional rules) in your user configuration — never committed',
-    `Toady voice: ${state.toadyMode ? 'on' : 'off'}; additional rules: ${state.toadyRules.trim() ? 'loaded' : 'none'}`,
+    `Private personal instructions: ${state.personalRules.trim() ? 'loaded' : 'none'} (user configuration, never committed)`,
   ];
   return { project, personal };
 }
@@ -44,7 +43,7 @@ export function currentHint(choice: { model?: string; reasoningEffort?: string }
 
 /** Returns 'install' when the session may exit to the writer, else an Action. */
 export function activateReview(state: SessionState, id: string): Action | 'install' | null {
-  if (id === 'back') return { type: 'NAV', to: 'persona' };
+  if (id === 'back') return { type: 'NAV', to: 'instructions' };
   if (id === 'adopt') return { type: 'SET_ADOPT_SKILLS', adopt: !state.adoptSkills };
   // Info rows scroll but never activate.
   if (id.startsWith('info:') || id.startsWith('line:')) return null;
@@ -108,5 +107,5 @@ export function describeRulesSource(rules: string): string {
 }
 
 export function validateDraftPath(path: string): string {
-  return loadToadyRulesFile(resolve(path.trim()));
+  return loadPersonalRulesFile(resolve(path.trim()));
 }
