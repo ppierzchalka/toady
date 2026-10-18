@@ -102,6 +102,7 @@ export interface SessionState {
   editorMode: 'list' | 'custom' | 'path';
   personalRules: string;
   jevRequested?: boolean;
+  jevTouched?: boolean;
   /** True once personal instructions are edited; used to resolve saved harness settings. */
   rulesTouched: boolean;
   rulesBrowser: RulesBrowserState;
@@ -156,6 +157,7 @@ export function createInitialState(options: InitialOptions): SessionState {
     editorMode: 'list',
     personalRules: options.personalRules,
     jevRequested: options.jevRequested ?? false,
+    jevTouched: false,
     rulesTouched: false,
     rulesBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
     targetBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
@@ -420,7 +422,7 @@ export function reducer(state: SessionState, action: Action): SessionState {
       return { ...state, draft: '', draftFor: null, cursor: 0, editorMode: 'list', error: null };
     case 'TOGGLE_JEV':
       if (state.harness !== 'opencode' || !state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m))) return state;
-      return { ...state, jevRequested: !state.jevRequested };
+      return { ...state, jevRequested: !state.jevRequested, jevTouched: true };
     case 'SET_RULES':
       return { ...state, personalRules: action.rules, rulesTouched: true, rulesBrowser: { ...state.rulesBrowser, open: false, error: null }, draft: '', draftFor: null, cursor: 0, error: null };
     case 'CLEAR_RULES':
