@@ -54,15 +54,10 @@ function run() {
   }
   // Recheck every call: a saved toggle never authorizes a stale subscription.
   if (!goReady(cfg.model)) return print(result('skipped', 'No authenticated OpenCode Go Jev model'));
-  const chunks = [];
-  let size = 0;
-  for (const chunk of process.stdin) {
-    size += Buffer.byteLength(chunk);
-    if (size > 12288) return print(result('skipped', 'Input exceeds 12 KiB'));
-    chunks.push(chunk);
-  }
+  const raw = readFileSync(0, 'utf8');
+  if (Buffer.byteLength(raw) > 12288) return print(result('skipped', 'Input exceeds 12 KiB'));
   let input;
-  try { input = JSON.parse(chunks.join('')); }
+  try { input = JSON.parse(raw); }
   catch { return print(result('skipped', 'Input must be JSON')); }
   if (!input || typeof input !== 'object' || Array.isArray(input) ||
       typeof input.goal !== 'string' || typeof input.proposedDecision !== 'string' ||
