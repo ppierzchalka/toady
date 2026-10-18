@@ -31,20 +31,20 @@ function fixture() {
         harness: 'opencode' as const,
         replaceSkills: true,
       },
-      persona: { enabled: true, rules: 'No any.' },
+      instructions: 'No any.',
     },
   };
 }
 
 describe('single-cwd installation', () => {
-  it('writes team files, the private persona profile and VS Code settings', () => {
+  it('writes team files, private instructions and VS Code settings', () => {
     const { targetDir, plan } = fixture();
     const result = installAll(plan);
     expect(result.target).toBe(targetDir);
     expect(existsSync(join(targetDir, '.opencode/agents/analyst.md'))).toBe(true);
     expect(existsSync(join(targetDir, '.opencode/team.config.json'))).toBe(true);
     expect(existsSync(join(targetDir, '.gitignore'))).toBe(true);
-    expect(result.personaPaths.length).toBeGreaterThan(0);
+    expect(result.instructionsPaths.length).toBeGreaterThan(0);
     expect(readFileSync(join(privateContext.root, 'user/opencode/AGENTS.md'), 'utf8')).toContain('No any.');
     expect(result.vscode.status).toBe('wrote');
     expect(readFileSync(join(targetDir, '.vscode/settings.json'), 'utf8')).toContain('-workbench.action.quickOpen');
@@ -57,7 +57,7 @@ describe('single-cwd installation', () => {
     expect(second.vscode.status).toBe('kept');
   });
 
-  it('validates every scope before the first write: broken team tree blocks persona and editor writes', () => {
+  it('validates every scope before the first write: broken team tree blocks instructions and editor writes', () => {
     const { targetDir, plan } = fixture();
     mkdirSync(join(targetDir, '.opencode/skills'), { recursive: true });
     symlinkSync(join(source, 'package.json'), join(targetDir, '.opencode/skills/autonomous-implement'));
