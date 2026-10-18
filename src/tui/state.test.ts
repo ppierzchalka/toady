@@ -145,7 +145,7 @@ describe('installer session reducer', () => {
     expect(state.personalRules).toBe('old rules');
   });
 
-  it('committing rules closes the browser and marks the persona touched', () => {
+  it('committing rules closes the browser and marks the instructions as touched', () => {
     let state = base({ step: 'instructions' });
     state = reducer(state, { type: 'SET_RULES', rules: 'New rules.' });
     expect(state.personalRules).toBe('New rules.');
