@@ -128,7 +128,6 @@ export interface InitialOptions {
   harness: Harness;
   config: TeamConfig;
   overwrite: Record<string, boolean>;
-  toadyMode: boolean;
   personalRules: string;
   skillConflicts: string[];
   vscodeKept: boolean;
@@ -287,7 +286,7 @@ export function modelChoicesFor(state: SessionState, name: string): { provider: 
 }
 
 /** Apply a loaded target refresh atomically: new target owns config,
- * conflicts and editor status; user-scoped persona is untouched. The session
+ * conflicts and editor status; user-scoped instructions are untouched. The session
  * edit baseline resets, so a later switch re-arms discard-consent. */
 function applyTarget(
   state: SessionState,
