@@ -27,7 +27,7 @@ export const UNCHECKED_MARKER = '[ ]';
 export const STEP_TITLES: Record<string, string> = {
   directory: 'Step 1 of 4 — Installation directory',
   agents: 'Step 2 of 4 — Agents and models',
-  persona: 'Step 3 of 4 — Personal instructions',
+  instructions: 'Step 3 of 4 — Personal instructions',
   review: 'Step 4 of 4 — Review and install',
 };
 
