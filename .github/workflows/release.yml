@@ -78,8 +78,11 @@ jobs:
           node dist/cli.js --help | grep -q 'current directory'
           node dist/cli.js --help | grep -q 'configure Toady'
           mkdir -p "$SMOKE/proj" && cd "$SMOKE/proj"
+          printf 'Never fabricate verification results.\n' > "$SMOKE/rules.md"
           HOME="$SMOKE/home" XDG_CONFIG_HOME="$SMOKE/home/.config" \
-            node "$SMOKE/package/dist/cli.js" --defaults --harness=codex --toady < /dev/null
+            node "$SMOKE/package/dist/cli.js" --defaults --harness=codex --additional-rules="$SMOKE/rules.md" < /dev/null
+          test -f "$SMOKE/home/.codex/AGENTS.md"
+          grep -q 'Never fabricate verification results.' "$SMOKE/home/.codex/AGENTS.md"
           test -f .codex/team.config.json
           grep -q 'quickOpen' .vscode/settings.json
           echo "smoke ok"
