@@ -13,7 +13,7 @@ cd your-project
 npx -y https://github.com/ppierzchalka/toady/releases/download/current/installer-current.tgz
 ```
 
-The interactive setup walks **installation directory → agents and models → personal instructions → review and install**; files are written only after you confirm. Noninteractive flags, harness selection and the `install-team` alias form live in one place: [Installation options →](docs/team-configuration.md#installation-options).
+The interactive setup walks **installation directory → agents and models → personal instructions → review and install**; files are written only after you confirm. Personal instructions contain only your rules, without a voice/persona mode. Noninteractive flags, harness selection and the `install-team` alias form live in one place: [Installation options →](docs/team-configuration.md#installation-options).
 
 **Local development** (for working on the toolkit itself):
 
