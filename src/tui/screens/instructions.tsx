@@ -72,7 +72,7 @@ export function instructionsItems(state: SessionState): MenuItem[] {
       hint: state.harness !== 'opencode' ? 'unavailable for this harness' :
         !state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'unavailable; no authenticated Go Jev model detected' :
         state.jevRequested ? 'requested; capability tested before install' : 'off (optional)',
-      state: state.jevRequested ? 'checked' : 'unchecked' },
+      state: state.harness === 'opencode' && state.jevRequested && state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'checked' : 'unchecked' },
   ];
 }
 
