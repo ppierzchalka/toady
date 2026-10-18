@@ -12,7 +12,7 @@ import {
   targetEntries,
   validateTargetDir,
 } from './directory.js';
-import { personaShortcuts } from './persona.js';
+import { instructionsShortcuts } from './instructions.js';
 
 function workspace(): { root: string; cleanup: () => void } {
   const root = mkdtempSync(join(tmpdir(), 't08-dir-'));
@@ -25,8 +25,7 @@ function stateFor(patch: Record<string, unknown> = {}): SessionState {
     harness: 'opencode',
     config: {},
     overwrite: {},
-    toadyMode: false,
-    toadyRules: '',
+        personalRules: '',
     skillConflicts: [],
     vscodeKept: true,
   });
@@ -146,7 +145,7 @@ describe('target browser activation', () => {
   });
 
   it('applies a clean switch atomically and resets the edit baseline', () => {
-    let state = stateFor({ toadyRules: 'Keep me.', skillConflicts: ['old'], adoptSkills: true });
+    let state = stateFor({ personalRules: 'Keep me.', skillConflicts: ['old'], adoptSkills: true });
     state = reducer(state, {
       type: 'SET_TARGET',
       dir: '/b',
@@ -161,7 +160,7 @@ describe('target browser activation', () => {
     expect(state.adoptSkills).toBe(false);
     expect(state.settingsTouched).toBe(false);
     // Personal settings are user-scoped: untouched by a target switch.
-    expect(state.toadyRules).toBe('Keep me.');
+    expect(state.personalRules).toBe('Keep me.');
     expect(state.notice).toContain('/b');
     expect(state.focusId).toBe('confirm');
   });
@@ -250,7 +249,7 @@ describe('target browser activation', () => {
 
 describe('toady legend', () => {
   it('mentions Enter for the Toady toggle and never Space', () => {
-    const shortcuts = personaShortcuts(stateFor());
+    const shortcuts = instructionsShortcuts(stateFor());
     expect(shortcuts.join(' ')).toContain('Enter toggles Toady');
     expect(shortcuts.join(' ')).not.toContain('Space');
   });
