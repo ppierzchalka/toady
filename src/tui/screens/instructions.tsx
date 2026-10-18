@@ -120,7 +120,7 @@ export function instructionsShortcuts(state: SessionState): string[] {
   return ['↑↓ navigate', 'Enter activate', 'Esc quit'];
 }
 
-export const INSTRUCTIONS_NOTE = 'Toady and additional rules are instructionsl: stored outside the repo in your user configuration and applied across projects for this harness.';
+export const INSTRUCTIONS_NOTE = 'Personal instructions are stored outside the repository in your user configuration and apply across projects for this harness.';
 export const BROWSER_EMPTY = 'Empty folder — navigate elsewhere or cancel; prior rules are kept.';
 
 export function instructionsFixedRows(state: SessionState, width: number, compact: boolean, minimal = false, hintMode: 'all' | 'focused' | 'none' = compact ? 'focused' : 'all', editDetails = false): number {
