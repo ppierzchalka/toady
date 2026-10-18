@@ -1,9 +1,12 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { checkInstallFile } from './installPaths.js';
-import { personalConfigRoot } from './personalPaths.js';
+function configRoot(): string {
+  return resolve(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'toady');
+}
 
 export type JevProvider = 'zen' | 'typesafe' | 'openrouter';
 export type JevScope = 'work' | 'personal';
@@ -39,10 +42,10 @@ export function isJevProvider(p: string): p is JevProvider {
 export function jevSettingsPath(targetDir: string): string {
   const canonicalPath = realpathSync(targetDir);
   const hash = createHash('sha256').update(canonicalPath).digest('hex');
-  return join(personalConfigRoot('opencode'), 'toady', 'decision-gates', hash + '.json');
+  return join(configRoot(), 'decision-gates', hash + '.json');
 }
 export function readJevSettings(targetDir: string): JevConfig | null {
-  const root = personalConfigRoot('opencode');
+  const root = configRoot();
   const path = jevSettingsPath(targetDir);
   checkInstallFile(root, path);
   if (!existsSync(path)) return null;
@@ -56,7 +59,7 @@ export function readJevSettings(targetDir: string): JevConfig | null {
   return cfg as unknown as JevConfig;
 }
 export function preflightJev(targetDir: string): void {
-  checkInstallFile(personalConfigRoot('opencode'), jevSettingsPath(targetDir));
+  checkInstallFile(configRoot(), jevSettingsPath(targetDir));
   readJevSettings(targetDir);
 }
 
@@ -77,7 +80,7 @@ export function planJev(
   probe: JevProbe = defaultJevProbe,
   env: NodeJS.ProcessEnv = process.env,
 ): JevResult {
-  if (harness !== 'opencode' || selection.scope !== 'personal' || !selection.provider) {
+  if (selection.scope !== 'personal' || !selection.provider) {
     return { enabled: false, reason: 'Jev disabled (work/unsupported harness/not selected)', config: null, paths: [] };
   }
   const choice = PROVIDERS[selection.provider];
