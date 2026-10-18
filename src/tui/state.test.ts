@@ -8,8 +8,7 @@ function base(overrides: Partial<SessionState> = {}): SessionState {
       harness: 'opencode',
       config: { lead: { model: 'vertex/gemini' } },
       overwrite: {},
-      toadyMode: false,
-      toadyRules: 'old rules',
+            personalRules: 'old rules',
       skillConflicts: [],
       vscodeKept: false,
     }),
@@ -137,20 +136,20 @@ describe('installer session reducer', () => {
   });
 
   it('cancelling the rules browser keeps prior rules', () => {
-    let state = base({ step: 'persona' });
+    let state = base({ step: 'instructions' });
     state = reducer(state, { type: 'OPEN_RULES_BROWSER' });
     expect(state.rulesBrowser.open).toBe(true);
     state = reducer(state, { type: 'BROWSER_NAV', dir: '/tmp' });
     state = reducer(state, { type: 'CLOSE_RULES_BROWSER' });
     expect(state.rulesBrowser.open).toBe(false);
-    expect(state.toadyRules).toBe('old rules');
+    expect(state.personalRules).toBe('old rules');
   });
 
   it('committing rules closes the browser and marks the persona touched', () => {
-    let state = base({ step: 'persona' });
+    let state = base({ step: 'instructions' });
     state = reducer(state, { type: 'SET_RULES', rules: 'New rules.' });
-    expect(state.toadyRules).toBe('New rules.');
-    expect(state.personaTouched).toBe(true);
+    expect(state.personalRules).toBe('New rules.');
+    expect(state.rulesTouched).toBe(true);
     expect(state.rulesBrowser.open).toBe(false);
   });
 
@@ -186,7 +185,7 @@ describe('installer session reducer', () => {
   });
 
   it('normalizes browser focus on open, navigation and cancel', () => {
-    let state = base({ step: 'persona', focusId: 'rules-browse' });
+    let state = base({ step: 'instructions', focusId: 'rules-browse' });
     state = reducer(state, { type: 'OPEN_RULES_BROWSER' });
     expect(state.rulesBrowser.open).toBe(true);
     expect(state.focusId).toBe('..');
