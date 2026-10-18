@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 const ctx = vi.hoisted(() => ({ root: '' }));
 import {
@@ -41,6 +41,14 @@ describe('optional project-scoped Jev', () => {
     expect(result.enabled).toBe(false);
     expect(writeJevSettings(target, result)).toEqual([]);
     expect(calls).toEqual([]);
+  });
+  it('treats malformed optional consent as off, without blocking work installs', () => {
+    const path = jevSettingsPath(target);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, 'not valid json');
+    expect(readJevSettings(target)).toBeNull();
+    expect(preflightJev(target)).toBeUndefined();
+    expect(planJev(workChoice, 'codex', '').enabled).toBe(false);
   });
   it('supports the three fixed decision providers only', () => {
     expect(Object.keys(PROVIDERS)).toEqual(['zen','typesafe','openrouter']);
