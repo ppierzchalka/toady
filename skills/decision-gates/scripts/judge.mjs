@@ -39,7 +39,7 @@ const validConfig = cfg => {
 function projectConfigPath() {
   const root = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
   const id = createHash('sha256').update(realpathSync(process.cwd())).digest('hex');
-  return join(root, 'opencode', 'toady', 'decision-gates', id + '.json');
+  return join(root, 'toady', 'decision-gates', id + '.json');
 }
 async function callJev(cfg, input) {
   const provider = PROVIDERS[cfg.provider];
