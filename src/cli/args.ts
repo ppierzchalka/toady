@@ -1,7 +1,6 @@
 export interface CliArgs {
   defaults: boolean;
   harnessName: string | undefined;
-  toady: boolean | undefined;
   rulesFlag: string | undefined;
   clearRules: boolean;
   replaceSkills: boolean;
@@ -10,8 +9,7 @@ export interface CliArgs {
 
 const KNOWN_FLAGS = new Set([
   '--defaults', '-d',
-  '--toady', '--no-toady',
-  '--clear-additional-rules', '--clear-toady-rules',
+  '--clear-additional-rules',
   '--replace-skills',
   '--help', '-h',
 ]);
@@ -19,7 +17,7 @@ const KNOWN_FLAGS = new Set([
 export const USAGE = `toady — configure Toady in a single target directory
 
 Usage:
-  toady [--harness=<name>] [--toady|--no-toady]
+  toady [--harness=<name>]
         [--additional-rules=<file>|--clear-additional-rules]
         [--replace-skills] [--defaults]
 
@@ -32,9 +30,8 @@ Usage:
 
 Options:
   --harness=<name>        opencode | claude-code | codex | antigravity | copilot
-  --toady / --no-toady    Enable or disable the Toady voice
-  --additional-rules=<f>  Load extra rules into the private persona (also --toady-rules=<f>)
-  --clear-additional-rules Clear extra rules (also --clear-toady-rules)
+  --additional-rules=<f>  Load user-authored personal instructions
+  --clear-additional-rules Clear personal instructions
   --replace-skills        Adopt/replace unowned shipped skill folders
   --defaults, -d          Noninteractive install with default models (cwd only)
   --help, -h              Show this help
@@ -49,7 +46,6 @@ export function parseArgs(argv: string[]): CliArgs {
   const args: CliArgs = {
     defaults: false,
     harnessName: undefined,
-    toady: undefined,
     rulesFlag: undefined,
     clearRules: false,
     replaceSkills: false,
@@ -60,18 +56,12 @@ export function parseArgs(argv: string[]): CliArgs {
     if (arg === '--defaults' || arg === '-d') args.defaults = true;
     else if (arg === '--help' || arg === '-h') args.help = true;
     else if (arg === '--replace-skills') args.replaceSkills = true;
-    else if (arg === '--toady') {
-      if (args.toady === false) throw new Error('Choose --toady or --no-toady.\n' + USAGE);
-      args.toady = true;
-    } else if (arg === '--no-toady') {
-      if (args.toady === true) throw new Error('Choose --toady or --no-toady.\n' + USAGE);
-      args.toady = false;
-    } else if (arg.startsWith('--harness=')) {
+    else if (arg.startsWith('--harness=')) {
       if (args.harnessName !== undefined) throw new Error('Choose a single --harness=<name>.\n' + USAGE);
       args.harnessName = arg.slice('--harness='.length);
-    } else if (arg.startsWith('--additional-rules=') || arg.startsWith('--toady-rules=')) {
+    } else if (arg.startsWith('--additional-rules=')) {
       rulesFlags.push(arg.slice(arg.indexOf('=') + 1));
-    } else if (arg === '--clear-additional-rules' || arg === '--clear-toady-rules') {
+    } else if (arg === '--clear-additional-rules') {
       args.clearRules = true;
     } else if (arg.startsWith('-')) {
       if (!KNOWN_FLAGS.has(arg) && !arg.startsWith('--harness=')) {
