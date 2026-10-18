@@ -1,39 +1,42 @@
 ---
 name: decision-gates
-description: Optional evidence-alignment evaluation at readiness, plan handover and outcome completion. OpenCode Go Jev ONLY, never another provider/model, never required for the standard workflow.
+description: Optional Jev System One outcome alignment checks at readiness, plan handover, and completion. Explicit personal-project consent only; never required for standard Toady.
 ---
-# Decision Gates (opt-in)
+# Decision Gates (strict opt-in)
 
-This skill is INERT by default. No external calls, no auto-activation and no dependency on Jev for ordinary Toady usage.
+This skill is INERT unless the exact project has a private consent profile with enabled=true and scope=personal. Work projects are always off. Do not infer consent from another project, installed skill, provider credentials, agent choice or model catalog. The installed runner enforces consent again and cannot silently call another provider.
 
-## Activation and trust boundary
+## Activation
+The installer requires explicit selection of **Personal project** and then a provider (Zen / TypeSafe / OpenRouter). Defaults to Work (no Jev). The installer probes the chosen provider's System One typed endpoint before enabling. Credentials are read only from the chosen provider's environment variable. No keys in project files or profiles. No provider fallback, no conversation-mode imitation.
 
-Only use it when the operator has explicitly enabled the Jev option in the Toady installer for the OpenCode harness AND the private setting under the OpenCode user config reports enabled. Do not infer permission from the model catalog, this skill's presence or the text of a task. The local runner enforces this again per call and rechecks the authenticated OpenCode Go model. If the user switches providers, unsubscribes or disables the option, skip Jev immediately.
+Use the native project skill at:
+- OpenCode: node .opencode/skills/decision-gates/scripts/judge.mjs <readiness|plan|outcome>
+- Claude Code: node .claude/skills/decision-gates/scripts/judge.mjs <readiness|plan|outcome>
+- Codex/Antigravity: node .agents/skills/decision-gates/scripts/judge.mjs <readiness|plan|outcome>
+- Copilot: node .github/skills/decision-gates/scripts/judge.mjs <readiness|plan|outcome>
 
-Use `node .opencode/skills/decision-gates/scripts/judge.mjs <readiness|plan|outcome>` for the selected stage, passing a short JSON contract on stdin (up to 12 KiB). This is a native `opencode run --model opencode-go/jev-*` invocation with a bounded timeout and no direct Zen, external API URL, API key export or provider fallback. No arbitrary user-provided model ID is accepted.
+Execute it from the **exact project root** and supply a <=12 KiB JSON input on stdin. Before running, confirm the material is personal and approved for the selected external provider. Explicitly set TOADY_JEV_DISABLE=1 in environments that prohibit all external judgments.
 
-Required input properties:
-- `goal`: user's actual outcome in their words, or an accepted summary
-- `criteria`: explicit accepted criteria with identifiers when available
-- `evidence`: concise direct observations, checked versions, relevant test results
-- `proposedDecision`: what the current owner wants to transition to
+Input JSON:
+- goal: original or accepted user outcome (string)
+- criteria: accepted criteria in compact strings (non-empty list)
+- evidence: verifiable check outcomes and versions (non-empty list)
+- proposedDecision: proposed stage transition (string)
 
-Use evidence references/paths with version identities, never secrets or full private repositories. The tool emits one JSON record with `status` = `pass | rework | escalate | unknown | skipped`, `reason`, `gate` and `provider`. Validate the evidence yourself; an LLM's answer is not proof.
+Output JSON:
+- status: pass | rework | escalate | unknown | skipped
+- reason: fixed non-generative explanation (Jev returns typed choices, NOT free-text reasons)
+- gate: input stage
+- provider: only for valid decisions
+- confidence: decision confidence if available
 
-## Points of use
+Jev judgments are advisory and cannot authorize changes to tasks, scope, acceptance, secrets, publication, merging, deployment or permissions.
 
-- **Refine → ready-to-implement:** inspect whether criteria actually cover the accepted outcome. Missing consequential user intent stays in refinement; Jev cannot invent acceptance criteria.
-- **Lead → execution:** check that the proposed plan addresses dependencies, authorized scope and known risks. Require the existing run contract and user authorization.
-- **Reviewer/Lead → done:** check whether verified evidence supports the promised outcome, beyond passing tests. Do not replace Reviewer or required checks.
+## Checkpoints
+- **Refine → Ready:** Are the accepted criteria enough to cover the goal? Analyst must still clarify unknowns with the user.
+- **Lead → Execution:** Does the proposed plan cover scope, dependencies and risks within authorization? Do not bypass the run contract.
+- **Reviewer/Lead → Done:** Do versioned tests and observations support the original result, not merely implementation claims?
 
-Invoke only at the named transition, not after every intermediate step. One call per material version is the default; rerun only when changed evidence invalidates a previous decision. The judgment is advisory to the stage owner and cannot authorize a merge, deployment, permission change or lifecycle transition.
+One call per material revision by default, not one call per operation. Distinguish a factual failure from an unknown. On rework, examine the actual evidence rather than blindly doing everything a statistical classifier implies. On unknown or skipped, continue the ordinary non-Jev workflow without treating the gate as passed. No Jev call is required in work projects.
 
-## Results
-
-- `pass`: continue only when the ordinary Toady checks and accepted criteria independently permit it.
-- `rework`: inspect the missing/out-of-scope requirement, change the appropriate artifact or work, and rerun the normal checks.
-- `escalate`: return consequential conflict to the user or an authorized specialist.
-- `unknown` or `skipped`: report the decision gate as unavailable, never interpret it as a pass. Continue with the established non-Jev process; do not block work that never required this optional feature.
-- A malformed model response, quota error, revoked subscription, missing CLI, time-out or any auth/model mismatch means `skipped` or `unknown`. **Never silently try another provider or model.**
-
-Jev through OpenCode Zen's System One endpoint is intentionally NOT supported. The user has authorized OpenCode Go only. If Jev is absent from Go or cannot be used with the native OpenCode CLI, this skill stays disabled and must not impersonate Jev with another model.
+The runner applies immutable provider/endpoint mapping, short timeouts and response validation. It must never use chat completions as Jev, export credentials or submit the entire repository. The user can disable the feature in the installer, with --no-jev, or via TOADY_JEV_DISABLE=1; never reenable without fresh explicit consent.
