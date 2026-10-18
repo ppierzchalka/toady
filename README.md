@@ -77,6 +77,6 @@ npm run build
 
 Focused selectors (`test:fast`, `test:rendered`, `test:release`) are defined in `package.json` and exercised through the [workflow validation](docs/prompt-evaluation.md) protocol.
 
-### Optional Go Jev decision gates
+### Optional Jev decision gates (personal projects only)
 
-The installer can enable Jev as an **optional** evidence-alignment check at readiness, plan handover and outcome completion. It is **off by default**, never uses any non-Go provider, and can be disabled in the Personal instructions screen or with `--no-jev` during noninteractive setup. `--jev` requests activation, which succeeds only if an authenticated OpenCode Go Jev model exists **and** the native model capability check succeeds. Current OpenCode Go offerings may not include Jev; in that case the feature remains disabled without blocking ordinary work. There is no OpenCode Zen fallback. See [team configuration](docs/team-configuration.md#optional-jev-decision-gates-opencode-go-only).
+The Personal instructions step can enable advisory Jev System One evaluations at readiness, plan and outcome checkpoints. Select **Personal project** and a provider (OpenCode Zen, TypeSafe or OpenRouter); Work is the default and prohibits Jev. Each project has separate private consent. Keys are read from the selected provider's environment variable, and actual availability is verified before activation. The feature can be disabled at any time; existing workflows continue without Jev. See [team configuration](docs/team-configuration.md#optional-jev-decision-gates).
