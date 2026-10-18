@@ -17,6 +17,19 @@ function base(overrides: Partial<SessionState> = {}): SessionState {
 }
 
 describe('installer session reducer', () => {
+  it('keeps Jev off unless the exact Go model is authenticated in discovery', () => {
+    const initial = base({ step: 'instructions' });
+    expect(initial.jevRequested).toBe(false);
+    expect(reducer(initial, { type: 'TOGGLE_JEV' }).jevRequested).toBe(false);
+    const zenOnly = { ...initial, discovery: { status: 'ready' as const, models: ['opencode/jev-1.13'], detail: '' } };
+    expect(reducer(zenOnly, { type: 'TOGGLE_JEV' }).jevRequested).toBe(false);
+    const available = { ...initial, discovery: { status: 'ready' as const, models: ['opencode-go/jev-1.13'], detail: '' } };
+    const on = reducer(available, { type: 'TOGGLE_JEV' });
+    expect(on.jevRequested).toBe(true);
+    expect(on.jevTouched).toBe(true);
+    expect(reducer(on, { type: 'TOGGLE_JEV' }).jevRequested).toBe(false);
+    expect(reducer({ ...available, harness: 'codex' }, { type: 'TOGGLE_JEV' }).jevRequested).toBe(false);
+  });
   it('automatically applies predefined models and efforts when discovery completes', () => {
     const state = reducer(base({ config: {} }), {
       type: 'SET_DISCOVERY',
