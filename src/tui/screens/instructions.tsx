@@ -70,9 +70,9 @@ export function instructionsItems(state: SessionState): MenuItem[] {
     { id: '__back__', label: 'Back to agents and models' },
     { id: 'jev', label: 'Jev decision gates (OpenCode Go only)',
       hint: state.harness !== 'opencode' ? 'unavailable for this harness' :
-        !state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'unavailable; no authenticated Go Jev model detected' :
+        !state.discovery.models.some(m => /^opencode-go\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'unavailable; no authenticated Go Jev model detected' :
         state.jevRequested ? 'requested; capability tested before install' : 'off (optional)',
-      state: state.harness === 'opencode' && state.jevRequested && state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'checked' : 'unchecked' },
+      state: state.harness === 'opencode' && state.jevRequested && state.discovery.models.some(m => /^opencode-go\/jev(?:[-.][a-z0-9.-]+)?$/.test(m)) ? 'checked' : 'unchecked' },
   ];
 }
 
