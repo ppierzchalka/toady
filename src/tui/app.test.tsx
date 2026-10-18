@@ -62,6 +62,23 @@ function mount(target: string, overrides: Record<string, unknown> = {}, size: { 
 }
 
 describe('native installer app', () => {
+  it('starts with recommended selections after asynchronous discovery without applying defaults manually', async () => {
+    const target = workspace();
+    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, toadyMode: false, toadyRules: '', skillConflicts: [], vscodeKept: true });
+    let result: AppResult | null = null;
+    const rendered = renderTree(<InstallerApp initial={initial} onDone={value => { result = value; }} discover={async () => ({ models: ['openai/gpt-6.1-sol'], detail: 'Discovery complete' })} />);
+    live.push(rendered);
+    await rendered.ready();
+    await rendered.send(KEYS.enter);
+    await rendered.waitFor(() => stripAnsi(rendered.frame()).includes('gpt-6.1-sol'), 'automatically selected recommended model');
+    await rendered.send(KEYS.ctrlC);
+    await rendered.send('q');
+    const state = (result as AppResult | null)?.state;
+    expect(state?.config.lead).toEqual({ model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' });
+    expect(state?.settingsTouched).toBe(false);
+    expect(readdirSync(target)).toEqual([]);
+  });
+
   it('U09-1: warning inspection preserves checkbox toggles and full error precedence', async () => {
     const target = workspace();
     const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, toadyMode: false, toadyRules: '', skillConflicts: ['wayfinder'], vscodeKept: true });

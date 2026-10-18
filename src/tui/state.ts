@@ -110,6 +110,8 @@ export interface SessionState {
   targetPending: TargetPending | null;
   /** True once the user edits agent settings; gates discard-consent. */
   settingsTouched: boolean;
+  /** Roles edited this session must not be changed by late model discovery. */
+  editedAgents: string[];
   discovery: DiscoveryState;
   notice: string | null;
   error: string | null;
@@ -159,6 +161,7 @@ export function createInitialState(options: InitialOptions): SessionState {
     targetBrowser: { open: false, dir: options.targetDir, showHidden: false, focusId: '..', scrollTop: 0, error: null },
     targetPending: null,
     settingsTouched: false,
+    editedAgents: [],
     discovery: { status: 'loading', models: [], detail: 'Detecting providers…' },
     notice: null,
     error: null,
@@ -295,7 +298,7 @@ function applyTarget(
 ): SessionState {
   const overwrite: Record<string, boolean> = {};
   for (const name of AGENT_ORDER) overwrite[name] = true;
-  return {
+  return withDefaults({
     ...state,
     targetDir: payload.dir,
     config: structuredClone(payload.config),
@@ -306,12 +309,25 @@ function applyTarget(
     targetBrowser: { ...state.targetBrowser, open: false, error: null },
     targetPending: null,
     settingsTouched: false,
+    editedAgents: [],
     focusId: 'confirm',
     scrollTop: 0,
     region: 0,
     notice: `Target ${payload.dir} — loaded its saved configuration. Personal settings are unchanged.`,
     error: null,
-  };
+  });
+}
+
+/** Seed available recommendations without replacing saved models or session edits. */
+function withDefaults(state: SessionState): SessionState {
+  if (state.harness !== 'opencode' || state.discovery.status !== 'ready') return state;
+  const config = { ...state.config };
+  for (const name of AGENT_ORDER) {
+    if (config[name]?.model || state.editedAgents.includes(name)) continue;
+    const choice = resolveDefault(name, state.discovery.models);
+    if (choice) config[name] = { ...config[name], ...choice };
+  }
+  return { ...state, config };
 }
 
 export function reducer(state: SessionState, action: Action): SessionState {
@@ -320,7 +336,7 @@ export function reducer(state: SessionState, action: Action): SessionState {
       return clearScreenTransient(state, action.to, action.to === 'directory' ? 'confirm' : action.to === 'agents' ? state.harness : action.to === 'persona' ? 'toady' : 'install');
     case 'SET_HARNESS':
       // Retain committed model choices across harness switches; never wipe.
-      return { ...state, harness: action.harness, focusId: action.harness, notice: null, error: null };
+      return withDefaults({ ...state, harness: action.harness, focusId: action.harness, notice: null, error: null });
     case 'FOCUS':
       return { ...state, focusId: action.id };
     case 'SCROLL':
@@ -347,27 +363,27 @@ export function reducer(state: SessionState, action: Action): SessionState {
       } else {
         delete next.model;
       }
-      return { ...state, config: { ...state.config, [action.name]: next }, draft: '', draftFor: null, cursor: 0, editorMode: 'list', search: '', error: null, settingsTouched: true };
+      return { ...state, config: { ...state.config, [action.name]: next }, draft: '', draftFor: null, cursor: 0, editorMode: 'list', search: '', error: null, settingsTouched: true, editedAgents: [...state.editedAgents, action.name] };
     }
     case 'SET_EFFORT': {
       const current = state.config[action.name] ?? {};
       const next = { ...current };
       if (action.effort) next.reasoningEffort = action.effort;
       else delete next.reasoningEffort;
-      return { ...state, config: { ...state.config, [action.name]: next }, error: null, settingsTouched: true };
+      return { ...state, config: { ...state.config, [action.name]: next }, error: null, settingsTouched: true, editedAgents: [...state.editedAgents, action.name] };
     }
     case 'TOGGLE_OVERWRITE':
       return { ...state, overwrite: { ...state.overwrite, [action.name]: !state.overwrite[action.name] }, settingsTouched: true };
     case 'SET_TOOLS': {
       const current = state.config[action.name] ?? {};
-      return { ...state, config: { ...state.config, [action.name]: { ...current, additionalTools: action.tools } }, draft: '', draftFor: null, cursor: 0, error: null, settingsTouched: true };
+      return { ...state, config: { ...state.config, [action.name]: { ...current, additionalTools: action.tools } }, draft: '', draftFor: null, cursor: 0, error: null, settingsTouched: true, editedAgents: [...state.editedAgents, action.name] };
     }
     case 'RESET_AGENT': {
       // Non-OpenCode harnesses have no default resolver: reset means a clean
       // return to inherited models, never an OpenCode default leak.
       if (state.harness !== 'opencode') {
         const cleared = { ...state.config, [action.name]: {} };
-        return { ...state, config: cleared, notice: `Reset ${action.name} to inherited model.`, settingsTouched: true };
+        return { ...state, config: cleared, notice: `Reset ${action.name} to inherited model.`, settingsTouched: true, editedAgents: [...state.editedAgents, action.name] };
       }
       const config = { ...state.config };
       const choice = resolveDefault(action.name, state.discovery.models);
@@ -378,7 +394,7 @@ export function reducer(state: SessionState, action: Action): SessionState {
       if (state.harness !== 'opencode') {
         const cleared: TeamConfig = {};
         for (const name of AGENT_ORDER) cleared[name] = {};
-        return { ...state, config: cleared, notice: 'Reset all to inherited models.', settingsTouched: true };
+        return { ...state, config: cleared, notice: 'Reset all to inherited models.', settingsTouched: true, editedAgents: [...AGENT_ORDER] };
       }
       const config = { ...state.config };
       const reset = resetAllToDefaults(config, AGENT_ORDER, state.discovery.models);
@@ -453,7 +469,7 @@ export function reducer(state: SessionState, action: Action): SessionState {
     case 'CLOSE_DETAIL':
       return { ...state, detail: null };
     case 'SET_DISCOVERY':
-      return { ...state, discovery: action.discovery };
+      return withDefaults({ ...state, discovery: action.discovery });
     case 'NOTICE':
       return { ...state, notice: action.notice };
     case 'ERROR':

@@ -18,11 +18,70 @@ function base(overrides: Partial<SessionState> = {}): SessionState {
 }
 
 describe('installer session reducer', () => {
+  it('automatically applies predefined models and efforts when discovery completes', () => {
+    const state = reducer(base({ config: {} }), {
+      type: 'SET_DISCOVERY',
+      discovery: {
+        status: 'ready',
+        models: ['openai/gpt-6.1-sol', 'openai/gpt-6-luna', 'opencode-go/deepseek-v4-pro', 'opencode-go/deepseek-v4-flash', 'opencode-go/muse-spark-1.3-contributor'],
+        detail: '',
+      },
+    });
+    expect(state.config).toEqual({
+      analyst: { model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' },
+      lead: { model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' },
+      architect: { model: 'openai/gpt-6-luna', reasoningEffort: 'xhigh' },
+      security: { model: 'opencode-go/deepseek-v4-pro', reasoningEffort: 'high' },
+      ux: { model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' },
+      tester: { model: 'opencode-go/muse-spark-1.3-contributor', reasoningEffort: 'medium' },
+      developer: { model: 'opencode-go/muse-spark-1.3-contributor', reasoningEffort: 'medium' },
+      reviewer: { model: 'opencode-go/deepseek-v4-flash', reasoningEffort: 'medium' },
+    });
+    expect(state.settingsTouched).toBe(false);
+  });
+
   it('keeps the eight-role ordering and seeds saved selections', () => {
     expect([...AGENT_ORDER]).toEqual(['analyst', 'lead', 'architect', 'security', 'ux', 'tester', 'developer', 'reviewer']);
     const state = base();
     expect(state.config.lead).toEqual({ model: 'vertex/gemini' });
     expect(state.step).toBe('directory');
+  });
+
+  it('fills unset saved roles without replacing saved models or tools', () => {
+    const state = reducer(base({ config: { lead: { model: 'custom/saved', reasoningEffort: 'high' }, analyst: { additionalTools: ['custom-tool'] } } }), {
+      type: 'SET_DISCOVERY', discovery: { status: 'ready', models: ['openai/gpt-6.1-sol'], detail: '' },
+    });
+    expect(state.config.lead).toEqual({ model: 'custom/saved', reasoningEffort: 'high' });
+    expect(state.config.analyst).toEqual({ model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium', additionalTools: ['custom-tool'] });
+    expect(state.config.developer).toBeUndefined();
+  });
+
+  it('preserves explicit inheritance and edits made before discovery completes', () => {
+    let state = base({ config: {} });
+    state = reducer(state, { type: 'SET_MODEL', name: 'analyst', model: undefined });
+    state = reducer(state, { type: 'SET_MODEL', name: 'lead', model: 'custom/selected' });
+    state = reducer(state, { type: 'SET_DISCOVERY', discovery: { status: 'ready', models: ['openai/gpt-6.1-sol'], detail: '' } });
+    expect(state.config.analyst).toEqual({});
+    expect(state.config.lead).toEqual({ model: 'custom/selected' });
+    expect(state.config.ux).toEqual({ model: 'openai/gpt-6.1-sol', reasoningEffort: 'medium' });
+  });
+
+  it('does not seed another harness, but seeds when switching to OpenCode', () => {
+    let state = reducer(base({ harness: 'codex', config: {} }), {
+      type: 'SET_DISCOVERY', discovery: { status: 'ready', models: ['openai/gpt-6.1-sol'], detail: '' },
+    });
+    expect(state.config).toEqual({});
+    state = reducer(state, { type: 'SET_HARNESS', harness: 'opencode' });
+    expect(state.config.lead?.model).toBe('openai/gpt-6.1-sol');
+  });
+
+  it('seeds a newly selected target using the already discovered catalog', () => {
+    let state = base({ discovery: { status: 'ready', models: ['openai/gpt-6.1-sol'], detail: '' } });
+    state = reducer(state, { type: 'SET_MODEL', name: 'analyst', model: undefined });
+    state = reducer(state, { type: 'SET_TARGET', dir: '/other', config: { lead: { model: 'custom/other' } }, skillConflicts: [], vscodeKept: false });
+    expect(state.config.lead?.model).toBe('custom/other');
+    expect(state.config.analyst?.model).toBe('openai/gpt-6.1-sol');
+    expect(state.settingsTouched).toBe(false);
   });
 
   it('retains committed choices on Back and discards only the draft on editor cancel', () => {
