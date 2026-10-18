@@ -26,18 +26,17 @@ import {
   toggleEditor,
 } from './screens/agents.js';
 import {
-  PersonaScreen,
-  activatePersona,
+  InstructionsScreen,
+  activateInstructions,
   browserEntries,
   commitBrowserFile,
   commitRulesPath,
-  personaBrowserItems,
-  personaFixedRows,
-  personaFocusIds,
-  personaItems,
-  personaShortcuts,
-  togglePersona,
-} from './screens/persona.js';
+  instructionsBrowserItems,
+  instructionsFixedRows,
+  instructionsFocusIds,
+  instructionsItems,
+  instructionsShortcuts,
+} from './screens/instructions.js';
 import { ReviewScreen, activateReview, reviewFixedRows, reviewFocusIds, reviewItems, reviewShortcuts } from './screens/review.js';
 
 let cachedArt: Artwork | null | undefined;
@@ -240,7 +239,7 @@ export function InstallerApp(options: {
   const menuWidth = layout.avatar && art ? Math.max(20, width - art.cols - 3) : width;
   const entries = useMemo(
     () => {
-      if (state.step !== 'persona' || !state.rulesBrowser.open) return { entries: [], fsError: null as string | null };
+      if (state.step !== 'instructions' || !state.rulesBrowser.open) return { entries: [], fsError: null as string | null };
       const loaded = browserEntries(state.rulesBrowser.dir, state.rulesBrowser.showHidden);
       return { entries: loaded.entries, fsError: state.rulesBrowser.error ?? loaded.error };
     },
@@ -273,9 +272,9 @@ export function InstallerApp(options: {
       return directoryItems(current, loaded.entries, minimal);
     }
     if (current.step === 'review') return reviewItems(current);
-    if (current.step === 'persona') {
-      if (current.rulesBrowser.open) return personaBrowserItems(entryList, current.rulesBrowser.showHidden);
-      return personaItems(current);
+    if (current.step === 'instructions') {
+      if (current.rulesBrowser.open) return instructionsBrowserItems(entryList, current.rulesBrowser.showHidden);
+      return instructionsItems(current);
     }
     if (current.agentDetail) return editorItems(current, current.agentDetail);
     return agentsListItems(current);
@@ -319,7 +318,7 @@ export function InstallerApp(options: {
       return activateDirectory(current, id, targetEntryList);
     }
     if (current.step === 'review') return activateReview(current, id);
-    if (current.step === 'persona') return activatePersona(current, id, entryList);
+    if (current.step === 'instructions') return activateInstructions(current, id, entryList);
     if (current.agentDetail) {
       if (id === 'field:back') return { type: 'CLOSE_AGENT' };
       return activateEditor(current, current.agentDetail, id);
@@ -330,10 +329,6 @@ export function InstallerApp(options: {
   const toggle = (current: SessionState): Action | null => {
     // Checkbox rows keep their toggle; otherwise Space opens full details
     // for capped content, else it stays a no-op.
-    if (current.step === 'persona' && !current.rulesBrowser.open && !current.draftFor) {
-      const checkbox = togglePersona(current, current.focusId);
-      if (checkbox) return checkbox;
-    }
     if (current.step === 'review' && current.focusId === 'adopt') {
       return { type: 'SET_ADOPT_SKILLS', adopt: !current.adoptSkills };
     }
@@ -392,8 +387,8 @@ export function InstallerApp(options: {
         ? directoryShortcuts(state)
         : state.step === 'review'
           ? reviewShortcuts()
-          : state.step === 'persona'
-            ? personaShortcuts(state)
+          : state.step === 'instructions'
+            ? instructionsShortcuts(state)
             : agentsShortcuts(state);
   // Conservative footer measure for budgeting: the rendered footer can only
   // be shorter (Space details may be absent), never taller — budgets stay fit.
@@ -431,8 +426,8 @@ export function InstallerApp(options: {
            ? directoryFixedRows(state, menuWidth, compact, minimal, directoryPathRows)
           : state.step === 'agents'
             ? agentsFixedRows(state, menuWidth, compact, roomy, minimal, hintMode, withDetails) + discoveryRows
-            : state.step === 'persona'
-              ? personaFixedRows(state, menuWidth, compact, minimal, hintMode, withDetails)
+            : state.step === 'instructions'
+              ? instructionsFixedRows(state, menuWidth, compact, minimal, hintMode, withDetails)
               : reviewFixedRows(menuWidth, compact);
   // Advisory notices must yield to the focused action and its two window
   // indicators, including when a long directory consumes extra fixed rows.
@@ -440,7 +435,7 @@ export function InstallerApp(options: {
     ? requestedNoticeRows : 0;
   const suppressedNotice = showMessages && !!state.notice && noticeRows === 0;
   const browserErrorText =
-    state.step === 'persona' && state.rulesBrowser.open ? entries.fsError : null;
+    state.step === 'instructions' && state.rulesBrowser.open ? entries.fsError : null;
   const targetErrorText =
     state.step === 'directory' && state.targetBrowser.open ? targetFsError : null;
   const errorBlocks = [
@@ -471,7 +466,7 @@ export function InstallerApp(options: {
     if (state.draftFor && state.region === 1) return editActionIds(editDetailsAvailable);
     if (state.step === 'directory') return directoryFocusIds(state, targetEntryList, minimal);
     if (state.step === 'review') return reviewFocusIds(state);
-    if (state.step === 'persona') return personaFocusIds(state, entryList);
+    if (state.step === 'instructions') return instructionsFocusIds(state, entryList);
     if (state.agentDetail) return editorFocusIds(state, state.agentDetail);
     return agentsListFocusIds();
   }, [state, entries, targetList, editDetailsAvailable]);
@@ -489,7 +484,7 @@ export function InstallerApp(options: {
     if (next.step === 'agents' && next.agentDetail) {
       const ids = editorFocusIds(next, next.agentDetail);
       if (ids.length > 0) dispatch({ type: 'FOCUS', id: ids[0] });
-    } else if (next.step === 'persona' && !next.rulesBrowser.open) {
+    } else if (next.step === 'instructions' && !next.rulesBrowser.open) {
       dispatch({ type: 'FOCUS', id: 'rules-path' });
     }
     dispatch({ type: 'SET_REGION', region: 0 });
@@ -498,7 +493,7 @@ export function InstallerApp(options: {
 
   const commitDraft = (current: SessionState): void => {
     try {
-      if (current.step === 'persona') refocusAfterEdit(current, commitRulesPath(current));
+      if (current.step === 'instructions') refocusAfterEdit(current, commitRulesPath(current));
       else if (current.step === 'agents' && current.agentDetail) refocusAfterEdit(current, commitEditorDraft(current, current.agentDetail));
       else dispatch({ type: 'CLEAR_DRAFT' });
     } catch (error) {
@@ -616,7 +611,7 @@ export function InstallerApp(options: {
     }
     if (key.escape) {
       // Local cancellation first: browser, editor, and search clear locally.
-      if (state.step === 'persona' && state.rulesBrowser.open) {
+      if (state.step === 'instructions' && state.rulesBrowser.open) {
         dispatch({ type: 'CLOSE_RULES_BROWSER' });
         return;
       }
@@ -737,8 +732,8 @@ export function InstallerApp(options: {
     <DirectoryScreen state={state} width={menuWidth} listHeight={listHeight} compact={compact} hintMode={hintMode} minimal={minimal} pathRows={directoryPathRows} />
   ) : state.step === 'agents' ? (
     <AgentsScreen state={state} width={menuWidth} listHeight={listHeight} compact={compact} roomy={roomy} hintMode={hintMode} minimal={minimal} editDetails={editDetailsAvailable} />
-  ) : state.step === 'persona' ? (
-    <PersonaScreen state={state} width={menuWidth} listHeight={listHeight} compact={compact} hintMode={hintMode} minimal={minimal} editDetails={editDetailsAvailable} />
+  ) : state.step === 'instructions' ? (
+    <InstructionsScreen state={state} width={menuWidth} listHeight={listHeight} compact={compact} hintMode={hintMode} minimal={minimal} editDetails={editDetailsAvailable} />
   ) : (
     <ReviewScreen state={state} width={menuWidth} listHeight={listHeight} compact={compact} hintMode={hintMode} />
   );
