@@ -44,6 +44,11 @@ Install into a disposable repo, start a fresh native Lead and judge actual dispa
 | Symlink/invalid late destination with personal instructions | Preflight rejects before instructions/team writes |
 | Long Wayfinder resume | Current state read first; settled decisions/questions preserved |
 | Missing usage | Unknown, no fabricated savings or hard billing cap |
+| Jev unchecked / non-OpenCode harness | No Jev profile written, no Jev calls; ordinary pipeline unchanged |
+| Jev requested without authenticated Go model | Disabled with clear reason; no Zen/third-party fallback |
+| Go Jev advertised but native runtime unsupported | Capability check fails closed; no stale enabled profile |
+| Go subscription revoked after enablement | Runtime runner reports skipped; never changes model/provider |
+| Valid Go Jev response | Advisory verdict with supplied evidence; cannot authorize task done/merge/deploy |
 | Personal instructions only | Imported instructions applied verbatim; no generated theatrical voice or role-play directives |
 | Old persona settings reinstalled | Preserved user rules; old role-play block gone from native startup files; unrelated policy remains |
 | Unsupported user claim | Agent states uncertainty, checks evidence, and does not falsely claim success or agree to an incorrect premise |
