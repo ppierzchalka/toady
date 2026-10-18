@@ -141,8 +141,8 @@ describe('40x8 stress viewports', () => {
     await rendered.send(KEYS.esc); // clear search, back to list region
     await rendered.send(KEYS.esc); // back to the role list
     await rendered.send(KEYS.end);
-    await rendered.send(KEYS.enter); // persona
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    await rendered.send(KEYS.enter); // instructions
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter); // review
     await rendered.send(KEYS.enter); // install
     await rendered.waitFor(() => seenBox.state !== null, 'writer received committed model');
