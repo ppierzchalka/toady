@@ -329,7 +329,8 @@ export function InstallerApp(options: {
   const toggle = (current: SessionState): Action | null => {
     // Checkbox rows keep their toggle; otherwise Space opens full details
     // for capped content, else it stays a no-op.
-    if (current.step === 'instructions' && current.focusId === 'jev') return { type: 'TOGGLE_JEV' };
+    if (current.step === 'instructions' && current.focusId === 'jev-scope') return { type: 'SET_JEV_SCOPE', scope: current.jevScope === 'personal' ? 'work' : 'personal' };
+    if (current.step === 'instructions' && current.focusId === 'jev-provider') return { type: 'CYCLE_JEV_PROVIDER' };
     if (current.step === 'review' && current.focusId === 'adopt') {
       return { type: 'SET_ADOPT_SKILLS', adopt: !current.adoptSkills };
     }
