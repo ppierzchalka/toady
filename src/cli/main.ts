@@ -80,8 +80,16 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
   let savedRules = readPersonalInstructions(target, harness);
   if (args.rulesFlag) savedRules = loadPersonalRulesFile(resolve(args.rulesFlag));
   if (args.clearRules) savedRules = '';
-  const savedJev = harness === 'opencode' ? readJevSettings() : { enabled: false };
-  const jevRequested = args.jev ?? savedJev.enabled;
+  const savedJev = readJevSettings(target);
+  const initialJev = {
+    scope: savedJev?.enabled ? 'personal' as const : 'work' as const,
+    provider: savedJev?.enabled ? savedJev.provider : null,
+  };
+  const cliJev = args.jev === false || args.jevScope === 'work'
+    ? { scope: 'work' as const, provider: null }
+    : args.jev === true
+      ? { scope: 'personal' as const, provider: args.jevProvider ?? 'zen' as const }
+      : initialJev;
 
   if (args.defaults) {
     const models = defaultsModels(harness);
@@ -104,7 +112,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
     const plan = {
       options: { definitionsDir, skillDir, config, targetDir: target, overwrite, harness, replaceSkills: args.replaceSkills },
       instructions: savedRules,
-      jevRequested: harness === 'opencode' ? jevRequested : false,
+      jev: cliJev,
     };
     const conflicts = conflictingSkills(plan.options);
     if (conflicts.length && !args.replaceSkills) {
@@ -142,12 +150,13 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
     config: existing,
     overwrite: {},
     personalRules: savedRules,
-    jevRequested: harness === 'opencode' ? jevRequested : false,
+    jevScope: cliJev.scope,
+    jevProvider: cliJev.provider,
     skillConflicts: conflictingSkills(preflightOptions),
     vscodeKept: planVscodeSettings(target).body === null,
   });
   if (args.replaceSkills) initial.adoptSkills = true;
-  if (args.jev !== undefined) initial.jevTouched = true;
+  if (args.jev !== undefined || args.jevScope !== undefined) initial.jevTouched = true;
 
   // Read-only refresh for interactive target/harness changes: each target
   // owns its saved model choices, conflicts and editor status. Personal
@@ -192,8 +201,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
           replaceSkills: args.replaceSkills || state.adoptSkills,
         },
         instructions: rules,
-        jevRequested: state.harness === 'opencode' ?
-          (state.jevTouched ? Boolean(state.jevRequested) : readJevSettings().enabled) : false,
+        jev: { scope: state.jevScope, provider: state.jevProvider },
       };
       const conflicts = planSkillConflicts(plan);
       if (conflicts.length && !plan.options.replaceSkills) {
