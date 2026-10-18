@@ -30,8 +30,7 @@ function mount(target: string, overrides: Record<string, unknown> = {}, size: { 
     harness: 'opencode',
     config: {},
     overwrite: {},
-    toadyMode: false,
-    toadyRules: '',
+        personalRules: '',
     skillConflicts: [],
     vscodeKept: true,
     ...overrides,
@@ -64,7 +63,7 @@ function mount(target: string, overrides: Record<string, unknown> = {}, size: { 
 describe('native installer app', () => {
   it('starts with recommended selections after asynchronous discovery without applying defaults manually', async () => {
     const target = workspace();
-    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, toadyMode: false, toadyRules: '', skillConflicts: [], vscodeKept: true });
+    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, personalRules: '', skillConflicts: [], vscodeKept: true });
     let result: AppResult | null = null;
     const rendered = renderTree(<InstallerApp initial={initial} onDone={value => { result = value; }} discover={async () => ({ models: ['openai/gpt-6.1-sol'], detail: 'Discovery complete' })} />);
     live.push(rendered);
@@ -81,7 +80,7 @@ describe('native installer app', () => {
 
   it('U09-1: warning inspection preserves checkbox toggles and full error precedence', async () => {
     const target = workspace();
-    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, toadyMode: false, toadyRules: '', skillConflicts: ['wayfinder'], vscodeKept: true });
+    const initial = createInitialState({ targetDir: target, harness: 'opencode', config: {}, overwrite: {}, personalRules: '', skillConflicts: ['wayfinder'], vscodeKept: true });
     initial.discovery = { status: 'ready', models: [], detail: '' };
     initial.step = 'review';
     initial.focusId = 'adopt';
@@ -209,8 +208,8 @@ describe('native installer app', () => {
     await rendered.send(KEYS.enter); // agents
     await rendered.send(KEYS.end); // __next__
     await rendered.send(KEYS.enter); // persona
-    // persona menu: toady, browse, path, clear, __next__(4 downs), back
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    // instructions menu: browse, path, clear, __next__(3 downs), back
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter); // review
     let text = stripAnsi(rendered.frame());
     expect(text).toContain('Step 4 of 4');
@@ -238,7 +237,7 @@ describe('native installer app', () => {
     await rendered.send(KEYS.enter);
     await rendered.send(KEYS.end);
     await rendered.send(KEYS.enter);
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter);
     await rendered.send(KEYS.enter);
     const outcome = await settled();
@@ -272,8 +271,7 @@ describe('native installer app', () => {
     await rendered.send(KEYS.enter); // agents
     await rendered.send(KEYS.end);
     await rendered.send(KEYS.enter); // persona (focus toady)
-    await rendered.send(KEYS.down); // rules-browse
-    await rendered.send(KEYS.enter); // open browser at target
+        await rendered.send(KEYS.enter); // open browser at target
     let text = stripAnsi(rendered.frame());
     expect(text).toContain('rules.md');
     // entries: .. first, then dirs (empty/), then files; move to rules.md.
@@ -329,7 +327,7 @@ describe('native installer app', () => {
     await rendered.send(KEYS.enter);
     await rendered.send(KEYS.end);
     await rendered.send(KEYS.enter);
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter); // review, focus on install
     await rendered.send(KEYS.up); // adopt row
     let text = stripAnsi(rendered.frame());
@@ -383,12 +381,11 @@ describe('native installer app', () => {
   it('cancels a rules-path draft explicitly, keeping prior rules', async () => {
     const target = workspace();
     writeFileSync(join(target, 'rules.md'), 'Keep me.');
-    const { rendered, ready } = mount(target, { toadyRules: 'Keep me.' }, {});
+    const { rendered, ready } = mount(target, { personalRules: 'Keep me.' }, {});
     await ready();
     await rendered.send(KEYS.enter);
     await rendered.send(KEYS.end);
     await rendered.send(KEYS.enter); // persona
-    await rendered.send(KEYS.down);
     await rendered.send(KEYS.down); // rules-path row
     await rendered.send(KEYS.enter); // open path draft
     await rendered.send('missing.md');
@@ -462,7 +459,7 @@ describe('native installer app', () => {
     await rendered.send(KEYS.esc); // back to role list
     await rendered.send(KEYS.end);
     await rendered.send(KEYS.enter); // persona
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter); // review
     await rendered.send(KEYS.enter); // install
     expect((await settled())?.type).toBe('install');
