@@ -421,7 +421,7 @@ export function reducer(state: SessionState, action: Action): SessionState {
       // unrelated errors never coexist with an active draft.
       return { ...state, draft: '', draftFor: null, cursor: 0, editorMode: 'list', error: null };
     case 'TOGGLE_JEV':
-      if (state.harness !== 'opencode' || !state.discovery.models.some(m => /^opencode-go\\/jev(?:[-.][a-z0-9.-]+)?$/.test(m))) return state;
+      if (state.harness !== 'opencode' || !state.discovery.models.some(m => /^opencode-go\/jev(?:[-.][a-z0-9.-]+)?$/.test(m))) return state;
       return { ...state, jevRequested: !state.jevRequested, jevTouched: true };
     case 'SET_RULES':
       return { ...state, personalRules: action.rules, rulesTouched: true, rulesBrowser: { ...state.rulesBrowser, open: false, error: null }, draft: '', draftFor: null, cursor: 0, error: null };
