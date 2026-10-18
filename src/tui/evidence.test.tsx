@@ -247,7 +247,7 @@ describe('rendered evidence matrix', () => {
 
     // Rules browser with long paths plus a loader error, staying recoverable.
     const browser = await capture(
-      'persona-browser-99x24',
+      'instructions-browser-99x24',
       { columns: 99, rows: 24 },
       async (rendered) => {
         await rendered.send(KEYS.enter);
@@ -292,7 +292,7 @@ describe('rendered evidence matrix', () => {
         await rendered.send(KEYS.enter);
         await rendered.send(KEYS.end);
         await rendered.send(KEYS.enter);
-        for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+        for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
         await rendered.send(KEYS.enter);
         // Adopt the conflicting skill, then install: progress shows in-shell.
         await rendered.send(KEYS.up);
@@ -326,7 +326,7 @@ describe('rendered evidence matrix', () => {
           await rendered.send(KEYS.enter);
           await rendered.send(KEYS.end);
           await rendered.send(KEYS.enter);
-          for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+          for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
           await rendered.send(KEYS.enter);
           await rendered.send(KEYS.end);
         },
@@ -389,7 +389,7 @@ describe('rendered evidence matrix', () => {
     expect(stripAnsi(rendered.frame())).toContain('Step 2 of 4');
     await rendered.send(KEYS.end);
     await rendered.send(KEYS.enter);
-    for (let i = 0; i < 4; i += 1) await rendered.send(KEYS.down);
+    for (let i = 0; i < 3; i += 1) await rendered.send(KEYS.down);
     await rendered.send(KEYS.enter);
     await rendered.send(KEYS.enter);
     await rendered.waitFor(() => installedTarget !== null, 'exact long target passed to install');
