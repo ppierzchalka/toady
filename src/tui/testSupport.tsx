@@ -214,7 +214,7 @@ export interface FakeInstallResult {
     skillPath: string;
     skillPaths: string[];
   };
-  personaPaths: string[];
+  instructionsPaths: string[];
   vscode: { path: string; status: 'wrote' | 'kept' };
 }
 
@@ -222,7 +222,7 @@ export function fakeInstallResult(target: string): FakeInstallResult {
   return {
     target,
     team: { removed: [], legacyPreserved: [], written: [], preserved: [], configPath: join(target, 'team.config.json'), gitignorePath: join(target, '.gitignore'), skillPath: '', skillPaths: [] },
-    personaPaths: [],
+    instructionsPaths: [],
     vscode: { path: join(target, '.vscode/settings.json'), status: 'kept' },
   };
 }
